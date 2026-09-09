@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build && npm run copy",
     "preview": "vite preview",
-    "copy": "powershell -Command \"Copy-Item manifest.json,service-worker.js,icon-*.png,pickball_court.jpg www\\ -Force\"",
+    "copy": "node scripts/copy-assets.mjs",
     "android": "npx cap open android",
     "ios": "npx cap open ios",
     "sync": "npm run build && npx cap sync",
