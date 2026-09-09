@@ -58,28 +58,30 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
-      - name: Build Release AAB
+      - name: Build Release APK and AAB
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd android
-          ./gradlew bundleRelease \
+          ./gradlew assembleRelease bundleRelease \
             -Pandroid.injected.signing.store.file=${{ env.KEYSTORE_PATH }} \
             -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
-      - name: Upload AAB Artifact
+      - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PickleballTeamFlow-Android
-          path: android/app/build/outputs/bundle/release/*.aab
+          name: PickleballTeamFlow-Android-Release
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
 
       - name: Prepare Google Play service account
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && (secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 != '' || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '')
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
@@ -99,7 +101,7 @@ jobs:
           echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH=$SA_PATH" >> $GITHUB_ENV
 
       - name: Upload to Google Play
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && (secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 != '' || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '')
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH }}
@@ -107,3 +109,7 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/*.aab
           track: internal
           status: completed
+
+      - name: Skip Play upload (no service account secret)
+        if: github.ref == 'refs/heads/master' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 == '' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON == ''
+        run: echo "Google Play upload skipped: no service account secret configured."
