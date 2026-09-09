@@ -81,7 +81,7 @@ jobs:
           retention-days: 30
 
       - name: Prepare Google Play service account
-        if: github.ref == 'refs/heads/master' && (secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 != '' || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '')
+        if: github.ref == 'refs/heads/master'
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
@@ -93,15 +93,17 @@ jobs:
           elif [ -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
             printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$SA_PATH"
           else
-            echo "Missing Google Play credentials secret. Set GOOGLE_PLAY_SERVICE_ACCOUNT_JSON or GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64."
-            exit 1
+            echo "HAS_PLAY_CREDENTIALS=false" >> $GITHUB_ENV
+            echo "Google Play credentials not configured; upload step will be skipped."
+            exit 0
           fi
 
           python -m json.tool "$SA_PATH" > /dev/null
           echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH=$SA_PATH" >> $GITHUB_ENV
+          echo "HAS_PLAY_CREDENTIALS=true" >> $GITHUB_ENV
 
       - name: Upload to Google Play
-        if: github.ref == 'refs/heads/master' && (secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 != '' || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '')
+        if: github.ref == 'refs/heads/master' && env.HAS_PLAY_CREDENTIALS == 'true'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH }}
@@ -111,6 +113,6 @@ jobs:
           status: completed
 
       - name: Skip Play upload (no service account secret)
-        if: github.ref == 'refs/heads/master' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 == '' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON == ''
+        if: github.ref == 'refs/heads/master' && env.HAS_PLAY_CREDENTIALS != 'true'
         run: |
           echo "Google Play upload skipped: no service account secret configured."
