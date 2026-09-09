@@ -78,11 +78,31 @@ jobs:
           path: android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
 
+      - name: Prepare Google Play service account
+        if: github.ref == 'refs/heads/master'
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
+        run: |
+          SA_PATH="$RUNNER_TEMP/google-play-service-account.json"
+
+          if [ -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64" ]; then
+            echo -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64" | base64 --decode > "$SA_PATH"
+          elif [ -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            printf '%s' "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" > "$SA_PATH"
+          else
+            echo "Missing Google Play credentials secret. Set GOOGLE_PLAY_SERVICE_ACCOUNT_JSON or GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64."
+            exit 1
+          fi
+
+          python -m json.tool "$SA_PATH" > /dev/null
+          echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH=$SA_PATH" >> $GITHUB_ENV
+
       - name: Upload to Google Play
         if: github.ref == 'refs/heads/master'
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          serviceAccountJson: ${{ env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH }}
           packageName: com.pickleballteamflow.app
           releaseFiles: android/app/build/outputs/bundle/release/*.aab
           track: internal
