@@ -112,4 +112,5 @@ jobs:
 
       - name: Skip Play upload (no service account secret)
         if: github.ref == 'refs/heads/master' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 == '' && secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON == ''
-        run: echo "Google Play upload skipped: no service account secret configured."
+        run: |
+          echo "Google Play upload skipped: no service account secret configured."
