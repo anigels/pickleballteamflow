@@ -55,6 +55,9 @@ jobs:
           echo -n "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
           echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> $GITHUB_ENV
 
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+
       - name: Build Release AAB
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
