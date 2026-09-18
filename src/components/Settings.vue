@@ -265,9 +265,4 @@ export default {
 
   flex-shrink: 0;
 }
-
-.settings-page { max-width: 48rem; margin-inline: auto; overflow-wrap: anywhere; }
-.number-control { flex-wrap: wrap; }
-.number-control .setting-copy { flex: 1 1 12rem; }
-.setting-row-icon { flex-shrink: 0; }
 </style>
