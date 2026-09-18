@@ -1272,68 +1272,146 @@ export default {
       }, 75);
     },
 
-    async handleImageUpload(event) {
-      const file =
-        event.target.files[0];
+        cleanOcrName(line) {
+      return line
+        .normalize('NFC')
+        .replace(/[|_~^*={}<>[\]\\/]+/g, ' ')
+        .replace(/^[^\p{L}]+|[^\p{L}.'’-]+$/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    },
 
-      if (!file) return;
+    isLikelyPlayerName(line) {
+      if (
+        !line ||
+        line.length > 50 ||
+        !/\p{L}/u.test(line)
+      ) {
+        return false;
+      }
+
+      const letters =
+        (line.match(/\p{L}/gu) || [])
+          .length;
+
+      const digits =
+        (line.match(/\d/g) || [])
+          .length;
+
+      const suspicious =
+        (
+          line.match(
+            /[^\p{L}\p{M}\s.'’\-\d]/gu
+          ) || []
+        ).length;
+
+      // Names should be mostly letters. Keep legitimate
+      // punctuation, initials, accents and hyphenated names,
+      // but reject OCR noise and number-heavy lines.
+      return (
+        letters >= 2 &&
+        digits <= 1 &&
+        suspicious === 0 &&
+        letters / line.length >= 0.55
+      );
+    },
+
+    parseOcrNames(text) {
+      const seen = new Set();
+
+      return text
+        .split(/\r?\n/)
+        .map(this.cleanOcrName)
+        .filter(this.isLikelyPlayerName)
+        .filter(name => {
+          const key =
+            name.toLocaleLowerCase();
+
+          if (seen.has(key)) {
+            return false;
+          }
+
+          seen.add(key);
+          return true;
+        });
+    },
+
+    async handleImageUpload(event) {
+      const input = event.target;
+      const file = input.files?.[0];
+
+      if (!file || this.isProcessing) {
+        return;
+      }
+
+      let worker = null;
 
       this.isProcessing = true;
       this.ocrProgress =
         'Initializing OCR...';
 
       try {
-        const worker =
+        worker =
           await createWorker('eng');
 
         this.ocrProgress =
           'Processing image...';
 
-        const {
-          data: { text }
-        } =
-          await worker.recognize(
-            file
-          );
+        const result =
+          await worker.recognize(file);
 
-        await worker.terminate();
+        const text =
+          result?.data?.text || '';
 
         const extractedNames =
-          text
-            .split('\n')
-            .map(
-              line =>
-                line.trim()
-            )
-            .filter(
-              line =>
-                line.length > 0 &&
-                line.length < 50
-            )
-            .join('\n');
+          this.parseOcrNames(text);
 
-        if (extractedNames) {
-          if (
-            this.namesText.trim()
-          ) {
-            this.namesText +=
-              '\n' +
-              extractedNames;
-          } else {
+        if (extractedNames.length) {
+          const existingNames =
+            this.namesText
+              .split('\n')
+              .map(name => name.trim())
+              .filter(Boolean);
+
+          const existingKeys =
+            new Set(
+              existingNames.map(name =>
+                name.toLocaleLowerCase()
+              )
+            );
+
+          const newNames =
+            extractedNames.filter(
+              name =>
+                !existingKeys.has(
+                  name.toLocaleLowerCase()
+                )
+            );
+
+          if (newNames.length) {
             this.namesText =
-              extractedNames;
-          }
+              [
+                ...existingNames,
+                ...newNames
+              ].join('\n');
 
-          this.showMessage(
-            `Successfully extracted ${
-              extractedNames.split('\n')
-                .length
-            } names from image!`,
-            'alert alert-success'
-          );
+            this.showMessage(
+              `Found ${newNames.length} likely player ${
+                newNames.length === 1
+                  ? 'name'
+                  : 'names'
+              }. Please review the roster before generating rounds.`,
+              'alert alert-success'
+            );
+          } else {
+            this.showMessage(
+              'Text was found, but no new player names were detected. Try a clearer photo or enter the names manually.',
+              'alert alert-warning'
+            );
+          }
         } else {
           this.showMessage(
-            'No text found in image. Please try a clearer photo.',
+            'No clear player names were detected. Try brighter, even lighting and leave some space between names.',
             'alert alert-warning'
           );
         }
@@ -1348,12 +1426,28 @@ export default {
           'alert alert-danger'
         );
       } finally {
+        // Always release the Tesseract worker, including
+        // failed recognition attempts.
+        if (worker) {
+          try {
+            await worker.terminate();
+          } catch (terminateError) {
+            console.warn(
+              'OCR worker cleanup error:',
+              terminateError
+            );
+          }
+        }
+
         this.isProcessing = false;
         this.ocrProgress = '';
-        event.target.value = '';
+
+        if (input) {
+          input.value = '';
+        }
       }
     },
-
+    
     generate() {
       if (
         !this.players ||
