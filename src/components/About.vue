@@ -74,7 +74,7 @@
 
             <span>
               <strong>Tip:</strong>
-              The app works best with 8–24 players. Each court supports four active players.
+              The app works best with 8â€“24 players. Each court supports four active players.
               If there are more players than available court positions, the remaining players
               will rotate through sit-out periods.
             </span>
@@ -89,7 +89,7 @@
               <li>Smart player rotation designed to reduce repeat partnerships</li>
               <li>Varied opponents across rounds</li>
               <li>Fair distribution of sit-out periods</li>
-              <li>Support for 2–12 courts and multiple rounds</li>
+              <li>Support for 2â€“12 courts and multiple rounds</li>
               <li>Player substitutions during open rounds</li>
               <li>Regeneration of remaining rounds when the roster changes</li>
               <li>Optional player numbers for easier court organization</li>
@@ -187,7 +187,7 @@
 
           <div class="about-footer">
             <small>Version {{ appVersion }}</small>
-            <small>© 2026 Pickleball Team Flow. All rights reserved.</small>
+            <small>Â© 2026 Pickleball Team Flow. All rights reserved.</small>
           </div>
         </ion-card-content>
       </ion-card>
@@ -441,4 +441,9 @@ export default {
     justify-content: space-between;
   }
 }
+
+.about-page { max-width: 52rem; margin-inline: auto; overflow-wrap: anywhere; }
+.about-team-name, .about-footer { flex-wrap: wrap; min-width: 0; }
+.about-linkedin { justify-content: center; min-width: 44px; min-height: 44px; }
+.about-link { min-height: 44px; padding-block: 0.5rem; }
 </style>

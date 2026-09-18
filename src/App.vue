@@ -319,6 +319,9 @@ watch: {
 <style scoped>
 .app-shell {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: #f5f5f5;
 }
 
@@ -399,6 +402,8 @@ ion-button::part(native) {
 
 .app-content {
   --background: #f5f5f5;
+  flex: 1;
+  min-height: 0;
 }
 
 .page-container {
@@ -419,8 +424,7 @@ ion-button::part(native) {
 }
 
 /*
- * Reserve space for the fixed bottom nav
- * only when this is a native phone.
+ * Native phones have no top toolbar; inset their content below the status bar.
  */
 .app-shell.native-phone
 .page-container {
@@ -431,7 +435,7 @@ ion-button::part(native) {
     )
     1.25rem
     calc(
-      85px +
+      1.5rem +
       env(safe-area-inset-bottom)
     );
 }
@@ -442,7 +446,8 @@ ion-button::part(native) {
 ========================================================= */
 
 .main-tab-bar {
-  position: fixed;
+  position: relative;
+  flex-shrink: 0;
 
   bottom: 0;
   left: 0;
@@ -505,7 +510,8 @@ ion-button::part(native) {
 }
 
 .tab-label {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .tab-button.active {
@@ -607,9 +613,49 @@ ion-item ion-icon {
       )
       0.75rem
       calc(
-        85px +
+        1.5rem +
         env(safe-area-inset-bottom)
       );
   }
 }
+
+.app-header { flex-shrink: 0; }
+.app-brand { min-width: 0; max-width: calc(100% - 1rem); padding-block: 0.6rem; overflow-wrap: anywhere; }
+.tab-button { padding: 0.5rem 0.25rem; line-height: 1.3; }
+.main-tab-bar {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.page-container,
+.app-shell.native-phone .page-container {
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+ion-popover { --width: min(20rem, calc(100vw - 2rem)); }
+ion-popover ion-label { white-space: normal; overflow-wrap: anywhere; }
+</style>
+
+<style>
+/* Ionic reads this only where WebKit supports Dynamic Type. */
+:root { --ion-dynamic-font: -apple-system-body; }
+/* Allow controls to grow with platform text scaling. */
+ion-button {
+  height: auto;
+  min-height: 44px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  --padding-top: 0.65em;
+  --padding-bottom: 0.65em;
+}
+ion-button::part(native) { height: auto; min-height: inherit; line-height: 1.35; }
+ion-button ion-icon { flex-shrink: 0; }
+ion-segment-button { height: auto; font-size: 0.875rem; }
+ion-segment-button ion-label { white-space: normal; overflow-wrap: anywhere; }
+ion-select { font-size: 1rem; }
+ion-select::part(label), ion-select::part(text) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+ion-toggle { min-height: 44px; }
 </style>
