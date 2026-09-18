@@ -62,19 +62,7 @@
               </div>
 
               <div class="roster-heading-actions">
-                <div
-                  class="player-count"
-                  :class="{
-                    'player-count-ready':
-                      players.length >= 8 &&
-                      players.length <= 24
-                  }"
-                  aria-live="polite"
-                >
-                  {{ players.length }}
-                  player{{ players.length === 1 ? '' : 's' }}
-                </div>
-
+                
                 <ion-button
                   v-if="players.length"
                   fill="clear"
@@ -94,18 +82,33 @@
               </div>
             </div>
 
-            <ion-textarea
-              ref="rosterTextarea"
-              v-model="namesText"
-              class="roster-textarea"
-              fill="outline"
-              :rows="6"
-              :auto-grow="true"
-              placeholder="Tap here to enter player names...&#10;John&#10;Sara"
-              aria-label="Player roster"
-              helper-text="8–24 players are supported."
-              @ionInput="handleRosterInput"
-            />
+            <div class="roster-input-wrapper">
+              <ion-textarea
+                ref="rosterTextarea"
+                v-model="namesText"
+                class="roster-textarea"
+                fill="outline"
+                :rows="6"
+                :auto-grow="true"
+                placeholder="Tap here to enter player names...&#10;John&#10;Sara"
+                aria-label="Player roster"
+                helper-text="8–24 players are supported."
+                @ionInput="handleRosterInput"
+              />
+            
+              <div
+                class="player-count player-count-floating"
+                :class="{
+                  'player-count-ready':
+                    players.length >= 8 &&
+                    players.length <= 24
+                }"
+                aria-live="polite"
+              >
+                {{ players.length }}
+                player{{ players.length === 1 ? '' : 's' }}
+              </div>
+            </div>
 
             <input
               type="file"
@@ -2520,7 +2523,30 @@ export default {
 .player-count-ready {
   color: #198754;
 }
+.roster-input-wrapper {
+  position: relative;
+  margin-top: 0.75rem;
+}
 
+.player-count-floating {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 2.4rem;
+  z-index: 2;
+
+  padding: 0.25rem 0.55rem;
+
+  border: 1px solid #ced4da;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  font-size: 0.85rem;
+  line-height: 1.2;
+
+  pointer-events: none;
+}
+  
 .roster-textarea {
   --background: #fbfdf8;
   --border-color: #0e4b2e;
@@ -2534,7 +2560,7 @@ export default {
   --padding-bottom: 0.85rem;
 
   width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 0;
 
   font-size: 1rem;
   line-height: 1.55;
