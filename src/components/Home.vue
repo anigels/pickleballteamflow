@@ -3545,7 +3545,7 @@ input:focus-visible {
   }
 
   .roster-textarea {
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .settings-grid {
@@ -4136,6 +4136,64 @@ input:focus-visible {
   --handle-background-checked: #0e4b2e;
 
   flex-shrink: 0;
+}
+  /* =========================================================
+   LARGE / DYNAMIC TEXT ACCESSIBILITY
+   Preserve the standard layout at normal text sizes.
+   Allow content to reflow only when enlarged text needs room.
+========================================================= */
+
+@supports (font: -apple-system-body) {
+  .home-page {
+    font: -apple-system-body;
+  }
+}
+
+/*
+ * Do not clip enlarged text.
+ * Fixed-size badges may grow when their content requires it.
+ */
+.player-count,
+.round-status,
+.sit-out-count {
+  overflow-wrap: normal;
+}
+
+.sit-out-count {
+  min-width: 34px;
+  width: auto;
+  height: auto;
+  min-height: 34px;
+  padding: 0.25rem;
+}
+
+/*
+ * At accessibility-sized text, allow header rows to wrap
+ * instead of overlapping or clipping.
+ */
+@media (max-width: 575.98px) {
+  .roster-heading,
+  .sit-out-heading {
+    flex-wrap: wrap;
+  }
+
+  .roster-heading-copy {
+    flex: 1 1 12rem;
+  }
+
+  .roster-heading-actions {
+    flex: 0 1 auto;
+  }
+
+  .player-count {
+    white-space: normal;
+    text-align: right;
+  }
+
+  .sit-out-heading > :first-child {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
 }
 
 </style>
