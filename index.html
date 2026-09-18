@@ -28,27 +28,18 @@
         margin: 0;
         background-color: #f5f5f5;
 
-        padding-top: env(safe-area-inset-top);
-        padding-right: env(safe-area-inset-right);
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-left: env(safe-area-inset-left);
+
     }
 
     #app {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
+        height: 100%;
     }
 
-    @media (max-width: 575.98px) {
-        #app {
-            padding: 12px;
-        }
-    }
+
 
     .group h4 {
         margin: 0 0 10px 0;
-        font-size: 16px;
+        font-size: 1rem;
     }
 
     .group.regular h4 {
@@ -77,7 +68,7 @@
 }
 
 .round-header h3::after {
-    content: " ✓";
+    content: " âœ“";
     color: #28a745;
     font-weight: bold;
     display: none;
