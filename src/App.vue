@@ -319,7 +319,19 @@ watch: {
 <style scoped>
 .app-shell {
   height: 100%;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
   background: #f5f5f5;
+}
+
+.app-content {
+  --background: #f5f5f5;
+
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* =========================================================
@@ -396,10 +408,6 @@ ion-button::part(native) {
 /* =========================================================
    PAGE CONTENT
 ========================================================= */
-
-.app-content {
-  --background: #f5f5f5;
-}
 
 .page-container {
   width: 100%;
