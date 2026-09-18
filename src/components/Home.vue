@@ -1345,38 +1345,306 @@ export default {
       }
 
       let worker = null;
+    async preprocessImageForOcr(file) {
+      const imageUrl =
+        URL.createObjectURL(file);
+
+      try {
+        const image =
+          await new Promise(
+            (resolve, reject) => {
+              const img = new Image();
+
+              img.onload = () =>
+                resolve(img);
+
+              img.onerror = () =>
+                reject(
+                  new Error(
+                    'Unable to load image.'
+                  )
+                );
+
+              img.src = imageUrl;
+            }
+          );
+
+        /*
+         * Keep enough resolution for OCR while avoiding
+         * unnecessarily huge camera images.
+         */
+        const maxDimension = 2200;
+
+        const scale = Math.min(
+          1,
+          maxDimension /
+            Math.max(
+              image.naturalWidth,
+              image.naturalHeight
+            )
+        );
+
+        const width = Math.max(
+          1,
+          Math.round(
+            image.naturalWidth * scale
+          )
+        );
+
+        const height = Math.max(
+          1,
+          Math.round(
+            image.naturalHeight * scale
+          )
+        );
+
+        const canvas =
+          document.createElement('canvas');
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const context =
+          canvas.getContext(
+            '2d',
+            {
+              willReadFrequently: true
+            }
+          );
+
+        if (!context) {
+          throw new Error(
+            'Unable to prepare image.'
+          );
+        }
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          width,
+          height
+        );
+
+        const imageData =
+          context.getImageData(
+            0,
+            0,
+            width,
+            height
+          );
+
+        const pixels =
+          imageData.data;
+
+        /*
+         * Convert to grayscale and increase contrast.
+         * This helps compensate for uneven lighting and
+         * makes printed text stand out from the paper.
+         */
+        for (
+          let i = 0;
+          i < pixels.length;
+          i += 4
+        ) {
+          const gray =
+            (pixels[i] * 0.299) +
+            (pixels[i + 1] * 0.587) +
+            (pixels[i + 2] * 0.114);
+
+          /*
+           * Stretch midtones around the center rather than
+           * using a hard black/white threshold. A hard
+           * threshold can destroy thin letters or text in
+           * shadows.
+           */
+          const contrasted =
+            Math.max(
+              0,
+              Math.min(
+                255,
+                ((gray - 128) * 1.45) +
+                  128
+              )
+            );
+
+          pixels[i] = contrasted;
+          pixels[i + 1] = contrasted;
+          pixels[i + 2] = contrasted;
+        }
+
+        context.putImageData(
+          imageData,
+          0,
+          0
+        );
+
+        return await new Promise(
+          (resolve, reject) => {
+            canvas.toBlob(
+              blob => {
+                if (blob) {
+                  resolve(blob);
+                } else {
+                  reject(
+                    new Error(
+                      'Unable to prepare image.'
+                    )
+                  );
+                }
+              },
+              'image/jpeg',
+              0.92
+            );
+          }
+        );
+      } finally {
+        URL.revokeObjectURL(
+          imageUrl
+        );
+      }
+    },
+
+    cleanOcrName(line) {
+      return line
+        .normalize('NFC')
+        .replace(
+          /[|_~^*={}<>[\]\\/]+/g,
+          ' '
+        )
+        .replace(
+          /^[^\p{L}]+|[^\p{L}.'’-]+$/gu,
+          ''
+        )
+        .replace(/\s+/g, ' ')
+        .trim();
+    },
+
+    isLikelyPlayerName(line) {
+      if (
+        !line ||
+        line.length > 50 ||
+        !/\p{L}/u.test(line)
+      ) {
+        return false;
+      }
+
+      const letters =
+        (
+          line.match(
+            /\p{L}/gu
+          ) || []
+        ).length;
+
+      const digits =
+        (
+          line.match(/\d/g) ||
+          []
+        ).length;
+
+      const suspicious =
+        (
+          line.match(
+            /[^\p{L}\p{M}\s.'’\-\d]/gu
+          ) || []
+        ).length;
+
+      return (
+        letters >= 2 &&
+        digits <= 1 &&
+        suspicious === 0 &&
+        letters / line.length >= 0.55
+      );
+    },
+
+    parseOcrNames(text) {
+      const seen = new Set();
+
+      return text
+        .split(/\r?\n/)
+        .map(this.cleanOcrName)
+        .filter(
+          this.isLikelyPlayerName
+        )
+        .filter(name => {
+          const key =
+            name.toLocaleLowerCase();
+
+          if (seen.has(key)) {
+            return false;
+          }
+
+          seen.add(key);
+          return true;
+        });
+    },
+
+    async handleImageUpload(event) {
+      const input = event.target;
+      const file =
+        input.files?.[0];
+
+      if (
+        !file ||
+        this.isProcessing
+      ) {
+        return;
+      }
+
+      let worker = null;
 
       this.isProcessing = true;
       this.ocrProgress =
-        'Initializing OCR...';
+        'Preparing photo...';
 
       try {
+        const preparedImage =
+          await this
+            .preprocessImageForOcr(
+              file
+            );
+
+        this.ocrProgress =
+          'Initializing OCR...';
+
         worker =
           await createWorker('eng');
 
         this.ocrProgress =
-          'Processing image...';
+          'Reading names...';
 
         const result =
-          await worker.recognize(file);
+          await worker.recognize(
+            preparedImage
+          );
 
         const text =
-          result?.data?.text || '';
+          result?.data?.text ||
+          '';
 
         const extractedNames =
-          this.parseOcrNames(text);
+          this.parseOcrNames(
+            text
+          );
 
-        if (extractedNames.length) {
+        if (
+          extractedNames.length
+        ) {
           const existingNames =
             this.namesText
               .split('\n')
-              .map(name => name.trim())
+              .map(
+                name =>
+                  name.trim()
+              )
               .filter(Boolean);
 
           const existingKeys =
             new Set(
-              existingNames.map(name =>
-                name.toLocaleLowerCase()
+              existingNames.map(
+                name =>
+                  name
+                    .toLocaleLowerCase()
               )
             );
 
@@ -1384,7 +1652,8 @@ export default {
             extractedNames.filter(
               name =>
                 !existingKeys.has(
-                  name.toLocaleLowerCase()
+                  name
+                    .toLocaleLowerCase()
                 )
             );
 
@@ -1426,12 +1695,13 @@ export default {
           'alert alert-danger'
         );
       } finally {
-        // Always release the Tesseract worker, including
-        // failed recognition attempts.
         if (worker) {
           try {
-            await worker.terminate();
-          } catch (terminateError) {
+            await worker
+              .terminate();
+          } catch (
+            terminateError
+          ) {
             console.warn(
               'OCR worker cleanup error:',
               terminateError
