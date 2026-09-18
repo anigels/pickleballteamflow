@@ -505,7 +505,10 @@ ion-button::part(native) {
 }
 
 .tab-label {
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: normal;
 }
 
 .tab-button.active {
@@ -611,5 +614,29 @@ ion-item ion-icon {
         env(safe-area-inset-bottom)
       );
   }
+}
+  /* =========================================================
+   LARGE / DYNAMIC TEXT ACCESSIBILITY
+   Preserve the normal navigation layout while allowing
+   enlarged text to grow and wrap when necessary.
+========================================================= */
+
+@supports (font: -apple-system-body) {
+  .app-shell {
+    font: -apple-system-body;
+  }
+}
+
+.main-tab-bar {
+  height: auto;
+}
+
+.tab-button {
+  height: auto;
+  min-height: 65px;
+}
+
+.tab-label {
+  max-width: 100%;
 }
 </style>
