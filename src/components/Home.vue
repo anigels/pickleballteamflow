@@ -103,7 +103,7 @@
               :auto-grow="true"
               placeholder="Tap here to enter player names...&#10;John&#10;Sara"
               aria-label="Player roster"
-              helper-text="8â€“24 players are supported."
+              helper-text="8–24 players are supported."
               @ionInput="handleRosterInput"
             />
 
@@ -788,7 +788,7 @@
             </div>
 
             <div class="small text-secondary mt-1">
-              Court {{ subModal.court?.courtNumber }} Â·
+              Court {{ subModal.court?.courtNumber }} ·
               Round {{ subModal.round?.index }}
             </div>
           </div>
