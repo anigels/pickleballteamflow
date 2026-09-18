@@ -56,7 +56,7 @@
                   Player Roster
                 </div>
 
-                <div class="roster-instruction">
+                <div id="roster-instructions" class="roster-instruction">
                   Tap the box below and enter one player per line.
                 </div>
               </div>
@@ -231,9 +231,22 @@
             </div>
           </div>
 
+          <div
+            id="setup-guidance"
+            class="setup-guidance small text-secondary"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <p v-if="rosterGuidance">{{ rosterGuidance }}</p>
+            <p v-if="courtCapacityGuidance">{{ courtCapacityGuidance }}</p>
+          </div>
+
           <ion-button
             expand="block"
             class="generate-button"
+            :disabled="!canGenerate"
+            aria-describedby="roster-instructions setup-guidance"
             @click="generate()"
           >
             <ion-icon
@@ -1151,6 +1164,51 @@ export default {
           lastSatRound:
             Number.NEGATIVE_INFINITY
         }));
+    },
+
+    canGenerate() {
+      return (
+        this.players.length >= 8 &&
+        this.players.length <= 24 &&
+        this.courtCount > 0 &&
+        this.roundCount > 0
+      );
+    },
+
+    rosterGuidance() {
+      const count = this.players.length;
+
+      if (count > 0 && count < 8) {
+        const needed = 8 - count;
+        return `Add ${needed} more ${needed === 1 ? 'player' : 'players'} to generate assignments.`;
+      }
+
+      if (count > 24) {
+        const excess = count - 24;
+        return `Maximum 24 players. Remove ${excess} ${excess === 1 ? 'player' : 'players'} to continue.`;
+      }
+
+      return '';
+    },
+
+    fullCourtCount() {
+      return Math.floor(this.players.length / 4);
+    },
+
+    unfilledCourtCount() {
+      return Math.max(0, this.courtCount - this.fullCourtCount);
+    },
+
+    courtCapacityGuidance() {
+      if (
+        this.players.length < 8 ||
+        this.players.length > 24 ||
+        this.unfilledCourtCount === 0
+      ) {
+        return '';
+      }
+
+      return `${this.players.length} players can fill ${this.fullCourtCount} ${this.fullCourtCount === 1 ? 'court' : 'courts'}. ${this.unfilledCourtCount} additional ${this.unfilledCourtCount === 1 ? 'court' : 'courts'} will not be used.`;
     },
 
     hasOpenRounds() {
@@ -2604,6 +2662,15 @@ export default {
   color: #6c757d;
 
   overflow-wrap: anywhere;
+}
+
+.setup-guidance {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.setup-guidance p {
+  margin: 0 0 0.75rem;
 }
 
 .generate-button {
