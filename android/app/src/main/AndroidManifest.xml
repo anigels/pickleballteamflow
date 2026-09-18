@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Explicitly exclude Android TV / Leanback devices -->
-    <uses-feature android:name="android.software.leanback" android:required="false" />
-    <uses-feature android:name="android.hardware.type.television" android:required="false" />
-
-    <!-- Explicitly exclude Wear OS smartwatches -->
-    <uses-feature android:name="android.hardware.type.watch" android:required="false" />
-
-    <!-- Explicitly exclude Automotive displays -->
-    <uses-feature android:name="android.hardware.type.automotive" android:required="false" />
-
     <!-- Device and screen size support - phones and tablets only -->
     <supports-screens
         android:smallScreens="true"
