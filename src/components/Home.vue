@@ -747,7 +747,6 @@
     <ion-modal
       :is-open="subModal.show"
       class="substitution-modal"
-      aria-labelledby="substitution-title"
       :backdrop-dismiss="true"
       @didDismiss="closeSubModal"
     >
@@ -759,7 +758,7 @@
                 PLAYER SUBSTITUTION
               </div>
 
-              <h2 id="substitution-title" class="sub-modal-title">
+              <h2 class="sub-modal-title">
                 Swap Player
               </h2>
             </div>
@@ -870,7 +869,6 @@
       v-if="isMobile"
       :is-open="settingsModal.show"
       class="settings-modal"
-      aria-labelledby="settings-title"
       :backdrop-dismiss="true"
       @didDismiss="closeSettingsModal"
     >
@@ -882,7 +880,7 @@
                 APP CONTROLS
               </div>
 
-              <h2 id="settings-title" class="settings-modal-title">
+              <h2 class="settings-modal-title">
                 Settings
               </h2>
 
@@ -1932,7 +1930,7 @@ export default {
 .home-page {
   width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-x: hidden;
 }
 
 .home-page *,
@@ -2149,7 +2147,7 @@ export default {
 .player-count {
   flex-shrink: 0;
 
-  white-space: normal;
+  white-space: nowrap;
 
   font-weight: 600;
   color: #6c757d;
@@ -2641,7 +2639,7 @@ export default {
   font-size: 0.76rem;
   font-weight: 700;
 
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .round-status-open {
@@ -2849,7 +2847,7 @@ export default {
   min-width: 0;
 
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   word-break: normal;
 }
 
@@ -3326,7 +3324,7 @@ export default {
 
   flex-shrink: 0;
 
-  white-space: normal;
+  white-space: nowrap;
 
   color: #198754;
 
@@ -3547,7 +3545,7 @@ input:focus-visible {
   }
 
   .roster-textarea {
-    font-size: 1rem;
+    font-size: 16px;
   }
 
   .settings-grid {
@@ -4140,44 +4138,4 @@ input:focus-visible {
   flex-shrink: 0;
 }
 
-
-/* Content-driven reflow also responds to rem growth from system text sizing. */
-.roster-heading, .roster-heading-actions, .round-card-header, .round-actions,
-.sit-out-heading, .sub-player-option, .number-control,
-.settings-modal-shell .number-control { flex-wrap: wrap; }
-.roster-heading-actions, .round-actions { flex-shrink: 1; min-width: 0; max-width: 100%; }
-.player-count, .round-status, .sub-player-action { overflow-wrap: anywhere; }
-.settings-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
-.secondary-actions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
-.courts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
-.game-summary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr)); }
-.game-summary > div { border: 1px solid #dee2e6; }
-.player-number, .sit-out-count, .vs-divider {
-  width: auto;
-  height: auto;
-  flex-basis: auto;
-  flex-shrink: 0;
-  min-width: 2em;
-  min-height: 2em;
-  padding: 0.2em;
-}
-.court-card { container-type: inline-size; }
-@container (max-width: 23rem) {
-  .vs-matchup { grid-template-columns: minmax(0, 1fr); }
-  .vs-divider { justify-self: center; padding-inline: 0.75em; }
-}
-.clear-roster-button { min-height: 44px; }
-.substitution-modal {
-  --width: min(40rem, 100%);
-  --height: 80vh;
-  --height: 80dvh;
-  --max-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-}
-.settings-modal { --width: min(40rem, 100%); }
-.settings-content { max-height: 85vh; max-height: 85dvh; }
-.sub-modal-shell, .settings-modal-shell {
-  overflow-wrap: anywhere;
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
-}
 </style>

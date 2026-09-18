@@ -28,18 +28,27 @@
         margin: 0;
         background-color: #f5f5f5;
 
-
+        padding-top: env(safe-area-inset-top);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
     }
 
     #app {
-        height: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
     }
 
-
+    @media (max-width: 575.98px) {
+        #app {
+            padding: 12px;
+        }
+    }
 
     .group h4 {
         margin: 0 0 10px 0;
-        font-size: 1rem;
+        font-size: 16px;
     }
 
     .group.regular h4 {

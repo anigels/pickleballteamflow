@@ -441,9 +441,4 @@ export default {
     justify-content: space-between;
   }
 }
-
-.about-page { max-width: 52rem; margin-inline: auto; overflow-wrap: anywhere; }
-.about-team-name, .about-footer { flex-wrap: wrap; min-width: 0; }
-.about-linkedin { justify-content: center; min-width: 44px; min-height: 44px; }
-.about-link { min-height: 44px; padding-block: 0.5rem; }
 </style>
