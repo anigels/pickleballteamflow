@@ -4,7 +4,7 @@ const STORAGE_KEY = 'pickleball-team-flow.settings.v1';
 
 function loadSettings() {
   const defaults = {
-    courtView: 'list',
+    courtView: 'vs',
     showNumbers: true
   };
 
