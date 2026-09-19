@@ -590,7 +590,7 @@
                 >
                   <div class="vs-team">
                     <div class="vs-team-label">
-                      Team 1
+                      Serving
                     </div>
 
                     <button
@@ -643,7 +643,7 @@
 
                   <div class="vs-team">
                     <div class="vs-team-label">
-                      Team 2
+                      Receiving
                     </div>
 
                     <button
