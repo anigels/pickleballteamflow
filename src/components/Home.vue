@@ -497,8 +497,8 @@
 
                 <span>
                   Need to make a change? Tap any court
-                  player to swap them with someone sitting
-                  out.
+                  player to swap positions with another player
+                  in this round.
                 </span>
               </div>
             </div>
@@ -535,22 +535,18 @@
                     class="player-row"
                     :class="{
                       'player-row-substitutable':
-                        !round.closed &&
-                        round.sitOut.length > 0
+                        !round.closed
                     }"
                     :disabled="
-                      round.closed ||
-                      round.sitOut.length === 0
+                      round.closed
                     "
                     :aria-label="
-                      !round.closed &&
-                      round.sitOut.length > 0
-                        ? 'Substitute ' + player.name
+                      !round.closed
+                        ? 'Swap ' + player.name
                         : player.name
                     "
                     @click="
                       !round.closed &&
-                      round.sitOut.length > 0 &&
                       openSubModal(
                         round,
                         court,
@@ -573,8 +569,7 @@
 
                     <ion-icon
                       v-if="
-                        !round.closed &&
-                        round.sitOut.length > 0
+                        !round.closed
                       "
                       :icon="swapVerticalOutline"
                       class="swap-indicator"
@@ -602,18 +597,15 @@
                       type="button"
                       class="vs-player"
                       :disabled="
-                        round.closed ||
-                        round.sitOut.length === 0
+                        round.closed
                       "
                       :aria-label="
-                        !round.closed &&
-                        round.sitOut.length > 0
-                          ? 'Substitute ' + player.name
+                        !round.closed
+                          ? 'Swap ' + player.name
                           : player.name
                       "
                       @click="
                         !round.closed &&
-                        round.sitOut.length > 0 &&
                         openSubModal(
                           round,
                           court,
@@ -655,18 +647,15 @@
                       type="button"
                       class="vs-player"
                       :disabled="
-                        round.closed ||
-                        round.sitOut.length === 0
+                        round.closed
                       "
                       :aria-label="
-                        !round.closed &&
-                        round.sitOut.length > 0
-                          ? 'Substitute ' + player.name
+                        !round.closed
+                          ? 'Swap ' + player.name
                           : player.name
                       "
                       @click="
                         !round.closed &&
-                        round.sitOut.length > 0 &&
                         openSubModal(
                           round,
                           court,
@@ -758,11 +747,12 @@
     </section>
 
     <!-- =========================================================
-         SUBSTITUTION MODAL
+         SWAP PLAYERS MODAL
     ========================================================== -->
     <ion-modal
       :is-open="subModal.show"
       class="substitution-modal"
+      aria-labelledby="swap-player-title"
       :backdrop-dismiss="true"
       @didDismiss="closeSubModal"
     >
@@ -771,10 +761,10 @@
           <div class="sub-modal-header">
             <div class="sub-modal-heading-copy">
               <div class="sub-modal-eyebrow">
-                PLAYER SUBSTITUTION
+                SWAP PLAYERS
               </div>
 
-              <h2 class="sub-modal-title">
+              <h2 id="swap-player-title" class="sub-modal-title">
                 Swap Player
               </h2>
             </div>
@@ -783,7 +773,7 @@
               fill="clear"
               color="medium"
               class="sub-modal-close"
-              aria-label="Close substitution window"
+              aria-label="Close swap players window"
               @click="closeSubModal"
             >
               <ion-icon
@@ -795,7 +785,7 @@
 
           <div class="sub-current-player">
             <div class="small text-secondary mb-1">
-              Replace
+              Selected player
             </div>
 
             <div class="sub-current-player-name">
@@ -803,66 +793,58 @@
             </div>
 
             <div class="small text-secondary mt-1">
-              Court {{ subModal.court?.courtNumber }} ·
+              Court {{ subModal.court?.courtNumber }} · {{ selectedSwapSide }} ·
               Round {{ subModal.round?.index }}
             </div>
           </div>
 
           <div class="sub-instruction">
-            Choose a player who is currently sitting out:
+            Choose another player in this round to swap positions with
+            {{ subModal.player?.name }}.
           </div>
 
-          <div class="sub-player-list">
-            <button
-              v-for="
-                p in
-                subModal.round?.sitOut || []
-              "
-              :key="p.id"
-              type="button"
-              class="sub-player-option"
-              :aria-label="
-                'Swap ' +
-                subModal.player?.name +
-                ' with ' +
-                p.name
-              "
-              @click="confirmSubstitution(p)"
-            >
-              <span class="sub-player-option-name">
-                <span
-                  v-if="showNumbers"
-                  class="player-number"
-                >
-                  #{{ p.id }}
+          <section
+            v-for="group in swapPlayerGroups"
+            :key="group.key"
+            class="swap-player-group"
+            :aria-labelledby="'swap-group-' + group.key"
+          >
+            <h3 :id="'swap-group-' + group.key" class="swap-group-title">
+              {{ group.label }}
+            </h3>
+            <div class="sub-player-list">
+              <button
+                v-for="option in group.players"
+                :key="option.player.id"
+                type="button"
+                class="sub-player-option"
+                :aria-label="'Swap ' + subModal.player?.name + ' with ' +
+                  option.player.name + ', ' + group.label +
+                  (option.side ? ', ' + option.side : '')"
+                @click="confirmSubstitution(option.player)"
+              >
+                <span class="sub-player-option-name">
+                  <span v-if="showNumbers" class="player-number">
+                    #{{ option.player.id }}
+                  </span>
+                  <span class="sub-player-option-name-text">
+                    {{ option.player.name }}
+                    <span v-if="option.side" class="swap-player-side">
+                      {{ option.side }}
+                    </span>
+                  </span>
                 </span>
-
-                <span class="sub-player-option-name-text">
-                  {{ p.name }}
+                <span class="sub-player-action" aria-hidden="true">
+                  Swap
+                  <ion-icon :icon="arrowForwardOutline" />
                 </span>
-              </span>
-
-              <span class="sub-player-action">
-                Swap
-
-                <ion-icon
-                  :icon="arrowForwardOutline"
-                  aria-hidden="true"
-                />
-              </span>
-            </button>
-          </div>
+              </button>
+            </div>
+          </section>
 
           <div class="sub-modal-note">
-            <ion-icon
-              :icon="informationCircleOutline"
-              aria-hidden="true"
-            />
-
-            <span>
-              {{ subModal.player?.name }}
-              will move to Sit Out for this round.
-            </span>
+            <ion-icon :icon="informationCircleOutline" aria-hidden="true" />
+            <span>Only these two positions in this round will change.</span>
           </div>
 
           <ion-button
@@ -1132,6 +1114,36 @@ export default {
   },
 
   computed: {
+    selectedSwapSide() {
+      const { court, player } = this.subModal;
+      const index = court?.players.findIndex(p => p.id === player?.id) ?? -1;
+      return index < 0 ? '' : index < 2 ? 'Serving' : 'Receiving';
+    },
+
+    swapPlayerGroups() {
+      const { round, player } = this.subModal;
+      if (!round || round.closed) return [];
+
+      const groups = round.courts.map(court => ({
+        key: `court-${court.courtNumber}`,
+        label: `Court ${court.courtNumber}`,
+        players: court.players.map((p, index) => ({
+          player: p,
+          side: index < 2 ? 'Serving' : 'Receiving'
+        })).filter(option => option.player.id !== player?.id)
+      })).filter(group => group.players.length);
+
+      if (round.sitOut.length) {
+        groups.push({
+          key: 'sit-out',
+          label: 'Sitting Out',
+          players: round.sitOut.map(p => ({ player: p, side: '' }))
+            .filter(option => option.player.id !== player?.id)
+        });
+      }
+      return groups;
+    },
+
     courtView: {
       get() {
         return settings.courtView;
@@ -1908,7 +1920,7 @@ export default {
     },
 
     // ---------------------------------------------------------
-    // SUBSTITUTION
+    // PLAYER SWAPS
     // ---------------------------------------------------------
 
     openSubModal(
@@ -1916,6 +1928,12 @@ export default {
       court,
       player
     ) {
+      if (
+        round.closed || !this.schedule.includes(round) ||
+        !round.courts.includes(court) ||
+        !court.players.some(p => p.id === player.id)
+      ) return;
+
       this.subModal = {
         show: true,
         round,
@@ -1933,86 +1951,39 @@ export default {
       };
     },
 
-    confirmSubstitution(
-      sitOutPlayer
-    ) {
-      const {
-        round,
-        court,
-        player
-      } =
-        this.subModal;
-
-      const playerIdx =
-        court.players.findIndex(
-          p =>
-            p.id === player.id
-        );
-
-      court.players.splice(
-        playerIdx,
-        1,
-        {
-          ...sitOutPlayer
-        }
-      );
-
+    confirmSubstitution(targetPlayer) {
+      const { round, court, player } = this.subModal;
+      // Recheck at confirmation: the dialog may refer to a stale or closed round.
       if (
-        court.team1Ids
-      ) {
-        const t1idx =
-          court.team1Ids.indexOf(
-            player.id
-          );
+        !round || round.closed || !this.schedule.includes(round) ||
+        !court || !round.courts.includes(court) || !player ||
+        !targetPlayer || targetPlayer.id === player.id
+      ) return;
 
-        if (
-          t1idx !== -1
-        ) {
-          court.team1Ids[
-            t1idx
-          ] =
-            sitOutPlayer.id;
-        }
-      }
-
-      if (
-        court.team2Ids
-      ) {
-        const t2idx =
-          court.team2Ids.indexOf(
-            player.id
-          );
-
-        if (
-          t2idx !== -1
-        ) {
-          court.team2Ids[
-            t2idx
-          ] =
-            sitOutPlayer.id;
-        }
-      }
-
-      const sitOutIdx =
-        round.sitOut.findIndex(
-          p =>
-            p.id ===
-            sitOutPlayer.id
-        );
-
-      round.sitOut.splice(
-        sitOutIdx,
-        1
+      const sourceIndex = court.players.findIndex(p => p.id === player.id);
+      const targetCourt = round.courts.find(c =>
+        c.players.some(p => p.id === targetPlayer.id)
       );
+      const targetPlayers = targetCourt ? targetCourt.players : round.sitOut;
+      const targetIndex = targetPlayers.findIndex(p => p.id === targetPlayer.id);
+      if (sourceIndex < 0 || targetIndex < 0) return;
 
-      round.sitOut.push({
-        ...player
-      });
+      const source = court.players[sourceIndex];
+      const target = targetPlayers[targetIndex];
+      court.players.splice(sourceIndex, 1, { ...target });
+      targetPlayers.splice(targetIndex, 1, { ...source });
+
+      // Regeneration reads completed-round team IDs for fairness history.
+      for (const affectedCourt of new Set([court, targetCourt].filter(Boolean))) {
+        affectedCourt.team1Ids = affectedCourt.players.slice(0, 2).map(p => p.id);
+        affectedCourt.team2Ids = affectedCourt.players.slice(2, 4).map(p => p.id);
+      }
 
       this.closeSubModal();
-
       this.showMessage(
-        `${player.name} subbed out → ${sitOutPlayer.name} subbed in.`,
+        targetCourt
+          ? `${source.name} and ${target.name} swapped for Round ${round.index}.`
+          : `${target.name} moved to Court ${court.courtNumber}; ${source.name} is sitting out for Round ${round.index}.`,
         'alert alert-success'
       );
     },
@@ -3530,7 +3501,7 @@ export default {
 }
 
 /* =========================================================
-   SUBSTITUTION MODAL
+   SWAP PLAYERS MODAL
 ========================================================= */
 
 .substitution-modal {
@@ -4579,5 +4550,13 @@ input:focus-visible {
     min-width: 0;
   }
 }
+
+/* Grouped swap choices remain readable at larger text sizes. */
+.swap-player-group { margin-block: 1rem; min-width: 0; }
+.swap-group-title { font-size: 0.9rem; font-weight: 700; color: #495057; }
+.swap-player-side { display: block; font-size: 0.85em; font-weight: 400; color: #6c757d; }
+.sub-player-option { flex-wrap: wrap; }
+.sub-player-option-name { flex: 1 1 10rem; }
+.sub-modal-shell { overflow-wrap: anywhere; }
 
 </style>
