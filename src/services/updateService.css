@@ -1,0 +1,24 @@
+/* Scoped to optional update prompts; leave all game UI styling unchanged. */
+.optional-update-alert .alert-wrapper {
+  width: calc(100% - 2rem);
+  max-width: 30rem;
+  max-height: calc(100% - 2rem);
+}
+.optional-update-alert .alert-title { font-size: 1.25rem; }
+.optional-update-alert .alert-message {
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+}
+.optional-update-alert .alert-button-group { flex-wrap: wrap; }
+.optional-update-alert .alert-button {
+  height: auto;
+  min-height: 44px;
+  font-size: 1rem;
+  color: #0e4b2e;
+}
+.optional-update-alert .alert-button-inner {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

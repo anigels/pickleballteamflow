@@ -6,7 +6,7 @@ const outputDir = join(rootDir, "www");
 
 mkdirSync(outputDir, { recursive: true });
 
-const staticFiles = ["manifest.json", "service-worker.js", "pickball_court.jpg"];
+const staticFiles = ["manifest.json", "service-worker.js", "pickball_court.jpg", "android-production-release.json"];
 
 for (const fileName of staticFiles) {
   copyFileSync(join(rootDir, fileName), join(outputDir, fileName));

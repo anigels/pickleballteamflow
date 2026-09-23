@@ -220,6 +220,7 @@
 </template>
 
 <script>
+import { startUpdateChecks } from './services/updateService';
 import {
   IonApp,
   IonButton,
@@ -248,6 +249,14 @@ import {
 
 export default {
   name: 'App',
+
+  mounted() {
+    this.stopUpdateChecks = startUpdateChecks();
+  },
+
+  beforeUnmount() {
+    this.stopUpdateChecks?.();
+  },
 
   components: {
     IonApp,
