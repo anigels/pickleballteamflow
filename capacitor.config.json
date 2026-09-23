@@ -3,6 +3,9 @@
   "appName": "Pickleball Team Flow",
   "webDir": "www",
   "bundledWebRuntime": false,
+  "plugins": {
+    "App": { "disableBackButtonHandler": true }
+  },
   "server": {
     "androidScheme": "https"
   }
