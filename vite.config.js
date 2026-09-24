@@ -15,7 +15,8 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       input: {
-        main: './index.html'
+        index: './index.html',
+        main: './app.html'
       }
     }
   }
