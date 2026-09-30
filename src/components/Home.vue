@@ -3269,7 +3269,8 @@ export default {
 .sit-out-player-name,
 .sub-player-option-name-text {
   min-width: 0;
-
+  flex-direction: row;
+  flex-wrap: nowrap;
   overflow-wrap: anywhere;
   word-break: normal;
 }
