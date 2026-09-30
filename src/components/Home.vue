@@ -4605,22 +4605,14 @@ input:focus-visible {
   color: #0e4b2e;
   margin-inline: 0;
 }
-.vs-player { flex-wrap: nowrap; column-gap: 0.35rem; }
+.vs-player { flex-wrap: wrap; column-gap: 0.35rem; }
 .vs-player .player-number { margin-inline-end: 0; }
 .vs-player-name { flex: 1 1 auto; overflow-wrap: normal; }
 .court-card { container-type: inline-size; }
-.vs-matchup { grid-template-columns: minmax(0, 1fr); }
-.vs-divider {
-  width: auto;
-  height: auto;
-  min-height: 1.875rem;
-  justify-self: stretch;
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-}
-.vs-team-label { text-align: left; }
-@container (max-width: 16rem) {
-  .vs-player-name { overflow-wrap: break-word; }
+@container (max-width: 22rem) {
+  .vs-matchup { grid-template-columns: minmax(0, 1fr); }
+  .vs-divider { width: auto; justify-self: stretch; }
+  .vs-team-label { text-align: left; }
 }
 .complete-round-button {
   --background: #0e4b2e;
