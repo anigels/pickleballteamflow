@@ -346,6 +346,18 @@
         </ion-card-content>
       </ion-card>
 
+      <aside
+        v-if="schedule.some(round => !round.closed) && !swapHintDismissed"
+        class="swap-coaching-hint"
+        aria-label="Player swap tip"
+      >
+        <ion-icon :icon="swapHorizontalOutline" aria-hidden="true" />
+        <p><strong>Want to adjust a matchup?</strong><br>Tap any player to swap positions.</p>
+        <button type="button" class="swap-hint-dismiss" @click="dismissSwapHint">
+          Got it
+        </button>
+      </aside>
+
       <!-- Rounds -->
       <div
         v-if="schedule.length"
@@ -411,18 +423,6 @@
             :id="'round-content-' + round.index"
             class="round-content"
           >
-            <aside
-              v-if="!round.closed && !swapHintDismissed && round === sortedSchedule.find(item => !item.closed)"
-              class="swap-coaching-hint"
-              aria-label="Player swap tip"
-            >
-              <ion-icon :icon="swapHorizontalOutline" aria-hidden="true" />
-              <p><strong>Want to adjust a matchup?</strong><br>Tap any player to swap positions.</p>
-              <button type="button" class="swap-hint-dismiss" @click="dismissSwapHint">
-                Got it
-              </button>
-            </aside>
-
             <!-- Sit Out -->
             <div
               v-if="round.sitOut.length"
