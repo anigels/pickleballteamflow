@@ -359,7 +359,18 @@
             'round-card-completed': round.closed
           }"
         >
-          <div class="round-card-header">
+          <div
+            :id="'round-header-' + round.index"
+            class="round-card-header"
+            :role="round.closed ? 'button' : undefined"
+            :tabindex="round.closed ? 0 : undefined"
+            :aria-expanded="round.closed ? isRoundExpanded(round) : undefined"
+            :aria-controls="round.closed ? 'round-content-' + round.index : undefined"
+            :aria-label="round.closed ? 'Round ' + round.index + ', completed' : undefined"
+            @click="round.closed && toggleRoundExpanded(round)"
+            @keydown.enter.prevent="round.closed && toggleRoundExpanded(round)"
+            @keydown.space.prevent="round.closed && toggleRoundExpanded(round)"
+          >
             <div class="round-heading">
               <div class="round-label">
                 ROUND
@@ -386,56 +397,32 @@
                 }}
               </span>
 
-              <ion-button
-                v-if="!round.closed"
-                size="small"
-                fill="outline"
-                color="success"
-                class="round-action-button"
-                :aria-label="
-                  'Complete round ' +
-                  round.index
-                "
-                @click="completeRound(round)"
-              >
-                <ion-icon
-                  :icon="checkmarkCircleOutline"
-                  slot="start"
-                />
-
-                Complete Round
-              </ion-button>
-
-              <ion-button
-                v-else
-                size="small"
-                fill="clear"
-                color="medium"
-                class="round-action-button"
-                :aria-label="
-                  (
-                    isRoundExpanded(round)
-                      ? 'Hide'
-                      : 'View'
-                  ) +
-                  ' round ' +
-                  round.index
-                "
-                @click="toggleRoundExpanded(round)"
-              >
-                {{
-                  isRoundExpanded(round)
-                    ? 'Hide'
-                    : 'View'
-                }}
-              </ion-button>
+              <ion-icon
+                v-if="round.closed"
+                :icon="isRoundExpanded(round) ? chevronUpOutline : chevronDownOutline"
+                class="round-chevron"
+                aria-hidden="true"
+              />
             </div>
           </div>
 
           <div
             v-show="isRoundExpanded(round)"
+            :id="'round-content-' + round.index"
             class="round-content"
           >
+            <aside
+              v-if="!round.closed && !swapHintDismissed && round === sortedSchedule.find(item => !item.closed)"
+              class="swap-coaching-hint"
+              aria-label="Player swap tip"
+            >
+              <ion-icon :icon="swapHorizontalOutline" aria-hidden="true" />
+              <p><strong>Want to adjust a matchup?</strong><br>Tap any player to swap positions.</p>
+              <button type="button" class="swap-hint-dismiss" @click="dismissSwapHint">
+                Got it
+              </button>
+            </aside>
+
             <!-- Sit Out -->
             <div
               v-if="round.sitOut.length"
@@ -571,7 +558,7 @@
                       v-if="
                         !round.closed
                       "
-                      :icon="swapVerticalOutline"
+                      :icon="swapHorizontalOutline"
                       class="swap-indicator"
                       aria-hidden="true"
                     />
@@ -623,6 +610,12 @@
                       <span class="vs-player-name">
                         {{ player.name }}
                       </span>
+                      <ion-icon
+                        v-if="!round.closed"
+                        :icon="swapHorizontalOutline"
+                        class="swap-indicator"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
 
@@ -673,6 +666,12 @@
                       <span class="vs-player-name">
                         {{ player.name }}
                       </span>
+                      <ion-icon
+                        v-if="!round.closed"
+                        :icon="swapHorizontalOutline"
+                        class="swap-indicator"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
                 </div>
@@ -707,6 +706,18 @@
                 idle this round.
               </span>
             </div>
+
+            <ion-button
+              v-if="!round.closed"
+              expand="block"
+              fill="solid"
+              class="complete-round-button"
+              :aria-label="'Complete round ' + round.index"
+              @click="completeRoundAndFocus(round)"
+            >
+              <ion-icon :icon="checkmarkCircleOutline" slot="start" aria-hidden="true" />
+              Complete Round
+            </ion-button>
 
             <!-- Completed Round Actions -->
             <div
@@ -1009,6 +1020,8 @@ import {
   cameraOutline,
   checkmarkCircleOutline,
   closeOutline,
+  chevronDownOutline,
+  chevronUpOutline,
   gridOutline,
   homeOutline,
   informationCircleOutline,
@@ -1017,7 +1030,7 @@ import {
   playOutline,
   refreshOutline,
   settingsOutline,
-  swapVerticalOutline,
+  swapHorizontalOutline,
   trashOutline
 } from 'ionicons/icons';
 
@@ -1061,6 +1074,8 @@ export default {
       cameraOutline,
       checkmarkCircleOutline,
       closeOutline,
+      chevronDownOutline,
+      chevronUpOutline,
       gridOutline,
       homeOutline,
       informationCircleOutline,
@@ -1069,7 +1084,7 @@ export default {
       playOutline,
       refreshOutline,
       settingsOutline,
-      swapVerticalOutline,
+      swapHorizontalOutline,
       trashOutline
     };
   },
@@ -1089,6 +1104,10 @@ export default {
       // UI-only state.
       // Does not change whether a round is completed.
       expandedRounds: {},
+      swapHintDismissed: (() => {
+        try { return localStorage.getItem('ptf.swapHint.dismissed.v1') === 'true'; }
+        catch { return false; }
+      })(),
 
       isProcessing: false,
       ocrProgress: '',
@@ -1240,6 +1259,19 @@ export default {
   },
 
   methods: {
+    dismissSwapHint() {
+      this.swapHintDismissed = true;
+      try { localStorage.setItem('ptf.swapHint.dismissed.v1', 'true'); }
+      catch { /* Dismiss for this session when storage is unavailable. */ }
+    },
+
+    completeRoundAndFocus(round) {
+      this.completeRound(round);
+      this.$nextTick(() => {
+        this.$el.querySelector('#round-header-' + round.index)?.focus({ preventScroll: true });
+      });
+    },
+
     showMessage(
       text,
       type = 'alert alert-danger'
@@ -4559,4 +4591,50 @@ input:focus-visible {
 .sub-player-option-name { flex: 1 1 10rem; }
 .sub-modal-shell { overflow-wrap: anywhere; }
 
+/* Round interaction guidance: presentation only. */
+.round-card-header[role="button"] { cursor: pointer; }
+.round-card-header[role="button"]:focus-visible,
+.swap-hint-dismiss:focus-visible { outline: 3px solid #198754; outline-offset: -3px; }
+.round-chevron { flex-shrink: 0; font-size: 1.25rem; color: #0e4b2e; }
+.swap-indicator { font-size: 1rem; color: #0e4b2e; margin-inline-start: auto; }
+.vs-player-name { flex: 1; overflow-wrap: anywhere; }
+.complete-round-button {
+  --background: #0e4b2e;
+  --background-hover: #0b3d26;
+  --background-activated: #0b3d26;
+  --color: #ffffff;
+  --border-radius: 0.75rem;
+  min-height: 52px;
+  height: auto;
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: normal;
+  text-transform: none;
+}
+.complete-round-button::part(native) { padding-block: 0.85rem; }
+.swap-coaching-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  background: #f0f8f4;
+  color: #0e4b2e;
+}
+.swap-coaching-hint > ion-icon { flex-shrink: 0; font-size: 1.1rem; }
+.swap-coaching-hint p { flex: 1 1 12rem; min-width: 0; margin: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.swap-hint-dismiss {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #0e4b2e;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
 </style>

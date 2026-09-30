@@ -55,15 +55,34 @@
                 in the Sit Out section.
               </li>
               <li>
-                <strong>Make substitutions when needed.</strong>
-                In an open round, tap a player on a court to swap them with a player who is sitting out.
+                <strong>Adjust matchups when needed.</strong>
+                In an open round, tap a court player to swap positions with another court player or someone sitting out.
               </li>
               <li>
-                <strong>Close completed rounds.</strong>
-                Close a round once it is finished. If your player roster changes, you can regenerate
+                <strong>Complete each round.</strong>
+                Tap Complete Round once it is finished. If your player roster changes, you can regenerate
                 the remaining open rounds without changing completed rounds.
               </li>
             </ol>
+          </div>
+
+          <div class="about-block">
+            <h2 class="about-heading">Adjusting Matchups</h2>
+            <p class="about-text">You can easily adjust players after a round is generated.</p>
+            <ol class="about-list">
+              <li>Tap any court player in an open round.</li>
+              <li>Choose another player on a court or a player sitting out to swap with.</li>
+              <li>Only those two players change positions — the rest of the round stays the same.</li>
+            </ol>
+          </div>
+
+          <div class="about-block">
+            <h2 class="about-heading">Completing Rounds</h2>
+            <p class="about-text">
+              When a round is finished, tap Complete Round. Completed rounds collapse
+              automatically to keep upcoming rounds easy to see. Tap a completed round's
+              header or chevron anytime to expand it and review the matchups.
+            </p>
           </div>
 
           <div class="about-tip">
