@@ -3293,6 +3293,7 @@ export default {
   justify-content: center;
 
   flex: 0 0 30px;
+  white-space: nowrap;
 
   margin-right: 0.45rem;
 
