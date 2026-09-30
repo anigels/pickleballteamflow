@@ -4596,8 +4596,22 @@ input:focus-visible {
 .round-card-header[role="button"]:focus-visible,
 .swap-hint-dismiss:focus-visible { outline: 3px solid #198754; outline-offset: -3px; }
 .round-chevron { flex-shrink: 0; font-size: 1.25rem; color: #0e4b2e; }
-.swap-indicator { font-size: 1rem; color: #0e4b2e; margin-inline-start: auto; }
-.vs-player-name { flex: 1; overflow-wrap: anywhere; }
+.swap-indicator {
+  flex: 0 0 0.875rem;
+  width: 0.875rem;
+  font-size: 0.875rem;
+  color: #0e4b2e;
+  margin-inline: 0;
+}
+.vs-player { flex-wrap: wrap; column-gap: 0.35rem; }
+.vs-player .player-number { margin-inline-end: 0; }
+.vs-player-name { flex: 1 1 auto; overflow-wrap: normal; }
+.court-card { container-type: inline-size; }
+@container (max-width: 22rem) {
+  .vs-matchup { grid-template-columns: minmax(0, 1fr); }
+  .vs-divider { width: auto; justify-self: stretch; }
+  .vs-team-label { text-align: left; }
+}
 .complete-round-button {
   --background: #0e4b2e;
   --background-hover: #0b3d26;
