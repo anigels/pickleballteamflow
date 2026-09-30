@@ -1270,27 +1270,49 @@ export default {
     async completeRoundAndFocus(round) {
       this.completeRound(round);
       await this.$nextTick();
-      // Measure after the collapsed content has left layout, not at the old
-      // Complete button offset. This also overrides native scroll anchoring.
-      await new Promise(resolve => requestAnimationFrame(resolve));
       const nextRound = this.sortedSchedule.find(item =>
         item.index > round.index && !item.closed
       );
       const header = this.$el.querySelector('#round-header-' + (nextRound || round).index);
       if (!header?.isConnected) return;
-      header.focus({ preventScroll: true });
       const content = header.closest('ion-content');
-      if (content?.getScrollElement && content?.scrollToPoint) {
-        const scroll = await content.getScrollElement();
-        // The native page's top padding includes its safe-area inset. Keep
-        // that same clearance after scrolling, below the status bar/island.
-        const page = header.closest('.page-container');
-        const topInset = page ? parseFloat(getComputedStyle(page).paddingTop) || 0 : 0;
-        const top = scroll.scrollTop + header.getBoundingClientRect().top -
-          scroll.getBoundingClientRect().top - topInset;
-        await content.scrollToPoint(0, Math.max(0, top), 0);
-      } else {
-        header.scrollIntoView({ block: 'start', behavior: 'instant' });
+      const scroll = await content?.getScrollElement?.();
+      const page = header.closest('.page-container');
+      const inset = () => page ? parseFloat(getComputedStyle(page).paddingTop) || 0 : 0;
+      let cancelled = false;
+      const cancel = () => { cancelled = true; };
+      const events = ['touchstart', 'pointerdown', 'wheel', 'keydown'];
+      events.forEach(event => window.addEventListener(event, cancel, { passive: true, capture: true }));
+      const oldAnchor = scroll?.style.overflowAnchor;
+      const oldMargin = header.style.scrollMarginTop;
+      try {
+        if (scroll) scroll.style.overflowAnchor = 'none';
+        header.style.scrollMarginTop = `${inset()}px`;
+        header.focus({ preventScroll: true });
+        // Align every scrollable ancestor, including the document if the
+        // native viewport has moved. Ionic alone cannot correct an outer scroll.
+        header.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+        // Recheck the actual visible position after focus/collapse settles.
+        // Stop immediately if the user starts another interaction.
+        for (const delay of [0, 100, 250]) {
+          if (delay) await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise(resolve => requestAnimationFrame(resolve));
+          if (cancelled || !header.isConnected) break;
+          if (scroll && content?.scrollToPoint) {
+            const visibleTop = Math.max(scroll.getBoundingClientRect().top,
+              window.visualViewport?.offsetTop || 0) + inset();
+            const error = header.getBoundingClientRect().top - visibleTop;
+            const maxTop = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+            const target = Math.min(maxTop, Math.max(0, scroll.scrollTop + error));
+            if (Math.abs(target - scroll.scrollTop) > 1) {
+              await content.scrollToPoint(0, target, 0);
+            }
+          }
+        }
+      } finally {
+        events.forEach(event => window.removeEventListener(event, cancel, true));
+        if (scroll) scroll.style.overflowAnchor = oldAnchor;
+        header.style.scrollMarginTop = oldMargin;
       }
     },
 
