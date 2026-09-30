@@ -109,14 +109,9 @@
               names and are not stored by Pickleball Team Flow.
             </p>
 
-            <a
-              href="https://marco-rodriguez59.github.io/pickleballteamflow/privacy.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="about-link"
-            >
+            <router-link to="/privacy" class="about-link">
               View Privacy Policy
-            </a>
+            </router-link>
           </div>
 
           <div class="about-block">
@@ -129,14 +124,9 @@
               troubleshooting, and contact information.
             </p>
 
-            <a
-              href="https://marco-rodriguez59.github.io/pickleballteamflow/support.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="about-link"
-            >
+            <router-link to="/support" class="about-link">
               Visit Support
-            </a>
+            </router-link>
           </div>
 
           <div class="about-block">

@@ -374,6 +374,62 @@
       margin-bottom: 36px;
     }
 
+    .btn-appstore {
+      display: inline-block;
+      transition: opacity .15s, transform .12s;
+    }
+
+    .btn-appstore:hover {
+      opacity: .85;
+      transform: translateY(-2px);
+    }
+
+    .btn-appstore img {
+      height: 52px;
+      width: auto;
+      display: block;
+    }
+
+    .btn-coming-soon {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-radius: 12px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,.6);
+      text-decoration: none;
+      cursor: default;
+      font-size: .85rem;
+      line-height: 1.25;
+    }
+
+    .btn-coming-soon i {
+      font-size: 1.6rem;
+      opacity: .6;
+    }
+
+    .btn-coming-soon .cs-label {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .65rem;
+      opacity: .7;
+      display: block;
+    }
+
+    .btn-coming-soon .cs-name {
+      font-weight: 700;
+      font-size: .95rem;
+    }
+
+    .cta-store-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     /* ── FOOTER ── */
     footer {
       background: var(--text-dark);
@@ -421,8 +477,15 @@
     </p>
     <div class="hero-actions">
       <a href="./app.html" class="btn-launch">
-        <i class="bi bi-play-circle-fill"></i> Launch the App
+        <i class="bi bi-play-circle-fill"></i> Launch the Web App
       </a>
+      <a href="https://apps.apple.com/app/id6804800516" class="btn-appstore" target="_blank" rel="noopener" aria-label="Download on the App Store">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+      </a>
+      <span class="btn-coming-soon" aria-label="Coming soon to Google Play">
+        <i class="bi bi-google-play"></i>
+        <span><span class="cs-label">Coming Soon to</span><span class="cs-name">Google Play</span></span>
+      </span>
       <a href="#how-it-works" class="btn-outline-light-custom">
         <i class="bi bi-info-circle"></i> See How It Works
       </a>
@@ -435,9 +498,10 @@
   ─────────────────────────────────────────────── -->
   <div class="badges">
     <div class="badge-item"><i class="bi bi-phone"></i> Works on Any Device</div>
+    <div class="badge-item"><i class="bi bi-apple"></i> Available on the App Store</div>
+    <div class="badge-item"><i class="bi bi-google-play"></i> Android Coming Soon</div>
     <div class="badge-item"><i class="bi bi-wifi-off"></i> Offline Ready</div>
     <div class="badge-item"><i class="bi bi-shield-check"></i> No Account Needed</div>
-    <div class="badge-item"><i class="bi bi-download"></i> Installable as App</div>
     <div class="badge-item"><i class="bi bi-currency-dollar"></i> 100% Free</div>
   </div>
 
@@ -576,9 +640,18 @@
         Free, no account needed, works on every device.
         Open the app and start building your first rotation.
       </p>
-      <a href="./app.html" class="btn-launch" style="font-size:1.1rem; padding: 16px 40px;">
-        <i class="bi bi-play-circle-fill"></i> Launch Pickleball Team Flow
-      </a>
+      <div class="cta-store-group">
+        <a href="./app.html" class="btn-launch" style="font-size:1.1rem; padding: 16px 40px;">
+          <i class="bi bi-play-circle-fill"></i> Launch Web App
+        </a>
+        <a href="https://apps.apple.com/app/id6804800516" class="btn-appstore" target="_blank" rel="noopener" aria-label="Download on the App Store">
+          <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" style="height:56px; filter: brightness(0) invert(1);">
+        </a>
+        <span class="btn-coming-soon" aria-label="Coming soon to Google Play">
+          <i class="bi bi-google-play"></i>
+          <span><span class="cs-label">Coming Soon to</span><span class="cs-name">Google Play</span></span>
+        </span>
+      </div>
     </div>
   </section>
 
@@ -590,11 +663,11 @@
       <p class="mb-1">
         <strong style="color:rgba(255,255,255,.85)">Pickleball Team Flow</strong>
         &nbsp;&middot;&nbsp;
-        <a href="./docs/privacy.html">Privacy Policy</a>
+        <a href="./app.html#/privacy">Privacy Policy</a>
         &nbsp;&middot;&nbsp;
-        <a href="./docs/support.html">Support</a>
+        <a href="./app.html#/support">Support</a>
         &nbsp;&middot;&nbsp;
-        <a href="./app.html">Open App</a>
+        <a href="https://apps.apple.com/app/id6804800516" target="_blank" rel="noopener">App Store</a>
       </p>
       <p class="mb-0" style="font-size:.8rem">&copy; <script>document.write(new Date().getFullYear())</script> Pickleball Team Flow. All rights reserved.</p>
     </div>

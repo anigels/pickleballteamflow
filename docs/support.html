@@ -3,57 +3,312 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support - Pickleball Team Flow</title>
+  <meta name="theme-color" content="#0E4B2E">
+  <meta name="description" content="Support — Pickleball Team Flow. Answers to common questions and troubleshooting tips.">
+  <link rel="icon" type="image/png" href="../icon-192.png">
+  <link rel="apple-touch-icon" href="../icon-192.png">
+  <title>Support — Pickleball Team Flow</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --green-dark:  #0E4B2E;
+      --green-mid:   #166B42;
+      --green-light: #1D8A55;
+      --green-pale:  #E8F5EE;
+      --yellow:      #F5C842;
+      --yellow-dark: #D4A800;
+      --text-dark:   #1A2B22;
+      --text-muted:  #6B8578;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text-dark);
+      background: #f5f8f6;
+      margin: 0;
+    }
+
+    .site-nav {
+      background: var(--green-dark);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .nav-brand img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .nav-cta {
+      background: var(--yellow);
+      color: var(--text-dark);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-weight: 700;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+
+    .nav-cta:hover {
+      background: var(--yellow-dark);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .doc-hero {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      color: #fff;
+      padding: 52px 24px 56px;
+      text-align: center;
+    }
+
+    .doc-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-bottom: 10px;
+    }
+
+    .doc-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .doc-hero p {
+      color: rgba(255,255,255,.8);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .doc-body {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+    }
+
+    .doc-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid #daeee4;
+      padding: 40px 40px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 575px) {
+      .doc-card { padding: 28px 20px; }
+    }
+
+    .doc-section {
+      padding-bottom: 28px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid #eaf3ee;
+    }
+
+    .doc-section:last-child {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .doc-section-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--green-pale);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--green-dark);
+      margin-bottom: 12px;
+    }
+
+    .doc-section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .doc-section p {
+      font-size: .95rem;
+      color: #3B5247;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .doc-section a {
+      color: var(--green-light);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .doc-section a:hover {
+      color: var(--green-dark);
+      text-decoration: underline;
+    }
+
+    .contact-card {
+      background: var(--green-pale);
+      border: 1.5px solid #c0dece;
+      border-radius: 16px;
+      padding: 32px 40px;
+      text-align: center;
+    }
+
+    @media (max-width: 575px) {
+      .contact-card { padding: 24px 20px; }
+    }
+
+    .contact-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .contact-card p {
+      color: var(--text-muted);
+      font-size: .95rem;
+      margin-bottom: 20px;
+    }
+
+    .btn-contact {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-dark);
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 28px;
+      font-weight: 700;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: background .15s, transform .12s;
+    }
+
+    .btn-contact:hover {
+      background: var(--green-mid);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    footer {
+      background: var(--text-dark);
+      color: rgba(255,255,255,.6);
+      text-align: center;
+      padding: 28px 24px;
+      font-size: .85rem;
+    }
+
+    footer a {
+      color: rgba(255,255,255,.8);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--yellow); }
+  </style>
 </head>
 <body>
-  <main>
-    <h1>Pickleball Team Flow Support</h1>
 
-    <p>
-      Need help with Pickleball Team Flow? Below are answers to common
-      questions and troubleshooting tips.
-    </p>
+  <nav class="site-nav">
+    <a href="../" class="nav-brand">
+      <img src="../src/assets/pickleball-team-flow-mark.png" alt="Pickleball Team Flow">
+      Pickleball Team Flow
+    </a>
+    <a href="../app.html" class="nav-cta">
+      <i class="bi bi-play-fill"></i> Open App
+    </a>
+  </nav>
 
-    <h2>Getting Started</h2>
-    <p>
-      Enter between 8 and 24 player names, select the number of courts and
-      rounds, and choose Generate Court Assignments.
-    </p>
+  <div class="doc-hero">
+    <div class="doc-eyebrow">Pickleball Team Flow</div>
+    <h1>Support</h1>
+    <p>Answers to common questions and troubleshooting tips.</p>
+  </div>
 
-    <h2>Scanning Player Names</h2>
-    <p>
-      Pickleball Team Flow can use a photo to recognize player names.
-      For best results, use a clear, well-lit image with easily readable text.
-    </p>
+  <div class="doc-body">
+    <div class="doc-card">
 
-    <h2>Camera Problems</h2>
-    <p>
-      If camera access was previously denied, open your device Settings,
-      find Pickleball Team Flow, and allow camera access.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-play-circle"></i></div>
+        <h2>Getting Started</h2>
+        <p>Enter between 8 and 24 player names, select the number of courts and rounds, and choose <strong>Generate Court Assignments</strong>.</p>
+      </div>
 
-    <h2>Incorrect Name Recognition</h2>
-    <p>
-      Name recognition may not always identify every name correctly.
-      You can edit the player roster after names have been extracted from
-      an image.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-camera"></i></div>
+        <h2>Scanning Player Names</h2>
+        <p>Pickleball Team Flow can use a photo to recognize player names. For best results, use a clear, well-lit image with easily readable text.</p>
+      </div>
 
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-camera-video-off"></i></div>
+        <h2>Camera Problems</h2>
+        <p>If camera access was previously denied, open your device Settings, find Pickleball Team Flow, and allow camera access.</p>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-person-x"></i></div>
+        <h2>Incorrect Name Recognition</h2>
+        <p>Name recognition may not always identify every name correctly. You can edit the player roster after names have been extracted from an image.</p>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-shield-check"></i></div>
         <h2>Privacy</h2>
-    <p>
-      For information about how Pickleball Team Flow handles player names
-      and photos, please review our
-      <a href="privacy.html">Privacy Policy</a>.
-    </p>
+        <p>For information about how Pickleball Team Flow handles player names and photos, please review our <a href="./privacy.html">Privacy Policy</a>.</p>
+      </div>
 
-    <h2>Contact Support</h2>
-    <p>
-      If you need additional help, have feedback, or would like to report
-      a problem, please contact Pickleball Team Flow support at
-      <a href="mailto:support@pickleballteamflow.app?subject=Pickleball%20Team%20Flow%20Support">
-        support@pickleballteamflow.app
-      </a>.
-    </p>
-  </main>
+    </div>
+
+    <div class="contact-card">
+      <h2>Still need help?</h2>
+      <p>If you have feedback or would like to report a problem, we'd love to hear from you.</p>
+      <a href="mailto:support@pickleballteamflow.app?subject=Pickleball%20Team%20Flow%20Support" class="btn-contact">
+        <i class="bi bi-envelope"></i> Contact Support
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p class="mb-1">
+        <strong style="color:rgba(255,255,255,.85)">Pickleball Team Flow</strong>
+        &nbsp;&middot;&nbsp;
+        <a href="./privacy.html">Privacy Policy</a>
+        &nbsp;&middot;&nbsp;
+        <a href="./support.html">Support</a>
+        &nbsp;&middot;&nbsp;
+        <a href="../app.html">Open App</a>
+      </p>
+      <p class="mb-0" style="font-size:.8rem">&copy; <script>document.write(new Date().getFullYear())</script> Pickleball Team Flow. All rights reserved.</p>
+    </div>
+  </footer>
+
 </body>
 </html>

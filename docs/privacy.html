@@ -3,57 +3,288 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy - Pickleball Team Flow</title>
+  <meta name="theme-color" content="#0E4B2E">
+  <meta name="description" content="Privacy Policy — Pickleball Team Flow. How the app handles player names, photos, and your data.">
+  <link rel="icon" type="image/png" href="../icon-192.png">
+  <link rel="apple-touch-icon" href="../icon-192.png">
+  <title>Privacy Policy — Pickleball Team Flow</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --green-dark:  #0E4B2E;
+      --green-mid:   #166B42;
+      --green-light: #1D8A55;
+      --green-pale:  #E8F5EE;
+      --yellow:      #F5C842;
+      --yellow-dark: #D4A800;
+      --text-dark:   #1A2B22;
+      --text-muted:  #6B8578;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text-dark);
+      background: #f5f8f6;
+      margin: 0;
+    }
+
+    .site-nav {
+      background: var(--green-dark);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .nav-brand img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .nav-cta {
+      background: var(--yellow);
+      color: var(--text-dark);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-weight: 700;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: background .15s, transform .1s;
+    }
+
+    .nav-cta:hover {
+      background: var(--yellow-dark);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .doc-hero {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      color: #fff;
+      padding: 52px 24px 56px;
+      text-align: center;
+    }
+
+    .doc-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-bottom: 10px;
+    }
+
+    .doc-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .doc-hero p {
+      color: rgba(255,255,255,.8);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .doc-body {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 48px 24px 72px;
+    }
+
+    .doc-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid #daeee4;
+      padding: 40px 40px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 575px) {
+      .doc-card { padding: 28px 20px; }
+    }
+
+    .doc-section {
+      padding-bottom: 28px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid #eaf3ee;
+    }
+
+    .doc-section:last-child {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
+    .doc-section-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--green-pale);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: var(--green-dark);
+      margin-bottom: 12px;
+    }
+
+    .doc-section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .doc-section p {
+      font-size: .95rem;
+      color: #3B5247;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .doc-section a {
+      color: var(--green-light);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .doc-section a:hover {
+      color: var(--green-dark);
+      text-decoration: underline;
+    }
+
+    .updated-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-pale);
+      color: var(--text-muted);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-bottom: 28px;
+      border: 1px solid #c0dece;
+    }
+
+    footer {
+      background: var(--text-dark);
+      color: rgba(255,255,255,.6);
+      text-align: center;
+      padding: 28px 24px;
+      font-size: .85rem;
+    }
+
+    footer a {
+      color: rgba(255,255,255,.8);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--yellow); }
+  </style>
 </head>
 <body>
-  <main>
+
+  <nav class="site-nav">
+    <a href="../" class="nav-brand">
+      <img src="../src/assets/pickleball-team-flow-mark.png" alt="Pickleball Team Flow">
+      Pickleball Team Flow
+    </a>
+    <a href="../app.html" class="nav-cta">
+      <i class="bi bi-play-fill"></i> Open App
+    </a>
+  </nav>
+
+  <div class="doc-hero">
+    <div class="doc-eyebrow">Pickleball Team Flow</div>
     <h1>Privacy Policy</h1>
+    <p>How the app handles player names, photos, and your data.</p>
+  </div>
 
-    <p><strong>Last updated: August 31, 2026</strong></p>
+  <div class="doc-body">
+    <div class="doc-card">
 
-    <p>
-      Pickleball Team Flow respects your privacy. The app does not require
-      users to create an account or provide personal information to
-      Pickleball Team Flow.
-    </p>
+      <div class="updated-badge">
+        <i class="bi bi-calendar3"></i> Last updated: August 31, 2026
+      </div>
 
-    <h2>Player Names</h2>
-    <p>
-      Player names entered into the app are used to create pickleball court
-      assignments, player rotations, and matchups. Pickleball Team Flow does
-      not upload player names to a Pickleball Team Flow server.
-    </p>
+      <p style="font-size:.95rem; color:#3B5247; line-height:1.7; margin-bottom:28px;">
+        Pickleball Team Flow respects your privacy. The app does not require users to create an account or provide personal information to Pickleball Team Flow.
+      </p>
 
-    <h2>Photos and Camera Access</h2>
-    <p>
-      The app may use the device camera or photo library to help recognize
-      player names from an image. Images selected for name recognition are
-      processed for that purpose and are not stored by Pickleball Team Flow.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-people"></i></div>
+        <h2>Player Names</h2>
+        <p>Player names entered into the app are used to create pickleball court assignments, player rotations, and matchups. Pickleball Team Flow does not upload player names to a Pickleball Team Flow server.</p>
+      </div>
 
-    <h2>Accounts</h2>
-    <p>
-      Pickleball Team Flow does not currently require or provide user
-      accounts.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-camera"></i></div>
+        <h2>Photos and Camera Access</h2>
+        <p>The app may use the device camera or photo library to help recognize player names from an image. Images selected for name recognition are processed for that purpose and are not stored by Pickleball Team Flow.</p>
+      </div>
 
-    <h2>Data Sharing</h2>
-    <p>
-      Pickleball Team Flow does not sell personal information or player
-      information.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-person-badge"></i></div>
+        <h2>Accounts</h2>
+        <p>Pickleball Team Flow does not currently require or provide user accounts.</p>
+      </div>
 
-    <h2>Changes to This Policy</h2>
-    <p>
-      This Privacy Policy may be updated as the app evolves. Any changes will
-      be reflected on this page.
-    </p>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-shield-lock"></i></div>
+        <h2>Data Sharing</h2>
+        <p>Pickleball Team Flow does not sell personal information or player information.</p>
+      </div>
 
-    <h2>Contact</h2>
-    <p>
-    Questions about this Privacy Policy may be submitted through the
-    <a href="support.html">Pickleball Team Flow support page</a>.
-    </p>
-  </main>
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-arrow-repeat"></i></div>
+        <h2>Changes to This Policy</h2>
+        <p>This Privacy Policy may be updated as the app evolves. Any changes will be reflected on this page.</p>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-section-icon"><i class="bi bi-envelope"></i></div>
+        <h2>Contact</h2>
+        <p>Questions about this Privacy Policy may be submitted through the <a href="./support.html">Pickleball Team Flow support page</a>.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p class="mb-1">
+        <strong style="color:rgba(255,255,255,.85)">Pickleball Team Flow</strong>
+        &nbsp;&middot;&nbsp;
+        <a href="./privacy.html">Privacy Policy</a>
+        &nbsp;&middot;&nbsp;
+        <a href="./support.html">Support</a>
+        &nbsp;&middot;&nbsp;
+        <a href="../app.html">Open App</a>
+      </p>
+      <p class="mb-0" style="font-size:.8rem">&copy; <script>document.write(new Date().getFullYear())</script> Pickleball Team Flow. All rights reserved.</p>
+    </div>
+  </footer>
+
 </body>
 </html>

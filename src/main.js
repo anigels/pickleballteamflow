@@ -17,12 +17,16 @@ import App from './App.vue'
 import Home from './components/Home.vue'
 import About from './components/About.vue'
 import Settings from './components/Settings.vue'
+import Privacy from './components/Privacy.vue'
+import Support from './components/Support.vue'
 
 // Routes
 const routes = [
   { path: '/', component: Home },
   { path: '/about', component: About },
-  { path: '/settings', component: Settings }
+  { path: '/settings', component: Settings },
+  { path: '/privacy', component: Privacy },
+  { path: '/support', component: Support }
 ]
 
 // Router
