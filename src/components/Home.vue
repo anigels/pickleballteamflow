@@ -363,7 +363,7 @@
             :id="'round-header-' + round.index"
             class="round-card-header"
             :role="round.closed ? 'button' : undefined"
-            :tabindex="round.closed ? 0 : undefined"
+            :tabindex="round.closed ? 0 : -1"
             :aria-expanded="round.closed ? isRoundExpanded(round) : undefined"
             :aria-controls="round.closed ? 'round-content-' + round.index : undefined"
             :aria-label="round.closed ? 'Round ' + round.index + ', completed' : undefined"
@@ -1267,11 +1267,27 @@ export default {
       catch { /* Dismiss for this session when storage is unavailable. */ }
     },
 
-    completeRoundAndFocus(round) {
+    async completeRoundAndFocus(round) {
       this.completeRound(round);
-      this.$nextTick(() => {
-        this.$el.querySelector('#round-header-' + round.index)?.focus({ preventScroll: true });
-      });
+      await this.$nextTick();
+      // Measure after the collapsed content has left layout, not at the old
+      // Complete button offset. This also overrides native scroll anchoring.
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const nextRound = this.sortedSchedule.find(item =>
+        item.index > round.index && !item.closed
+      );
+      const header = this.$el.querySelector('#round-header-' + (nextRound || round).index);
+      if (!header?.isConnected) return;
+      header.focus({ preventScroll: true });
+      const content = header.closest('ion-content');
+      if (content?.getScrollElement && content?.scrollToPoint) {
+        const scroll = await content.getScrollElement();
+        const top = scroll.scrollTop + header.getBoundingClientRect().top -
+          scroll.getBoundingClientRect().top;
+        await content.scrollToPoint(0, Math.max(0, top), 0);
+      } else {
+        header.scrollIntoView({ block: 'start', behavior: 'instant' });
+      }
     },
 
     showMessage(
