@@ -1282,8 +1282,12 @@ export default {
       const content = header.closest('ion-content');
       if (content?.getScrollElement && content?.scrollToPoint) {
         const scroll = await content.getScrollElement();
+        // The native page's top padding includes its safe-area inset. Keep
+        // that same clearance after scrolling, below the status bar/island.
+        const page = header.closest('.page-container');
+        const topInset = page ? parseFloat(getComputedStyle(page).paddingTop) || 0 : 0;
         const top = scroll.scrollTop + header.getBoundingClientRect().top -
-          scroll.getBoundingClientRect().top;
+          scroll.getBoundingClientRect().top - topInset;
         await content.scrollToPoint(0, Math.max(0, top), 0);
       } else {
         header.scrollIntoView({ block: 'start', behavior: 'instant' });
