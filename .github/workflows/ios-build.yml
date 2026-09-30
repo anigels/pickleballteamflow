@@ -20,11 +20,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web app
-        run: npm run build
-
-      - name: Sync Capacitor iOS
-        run: npx cap sync ios
+      - name: Build and sync iOS
+        run: npm run build:ios
         
       - name: Set iOS deployment target
         run: |
