@@ -502,7 +502,7 @@
                     class="court-heading-icon"
                     aria-hidden="true"
                   >
-                    <ion-icon :icon="peopleOutline" />
+                    <ion-icon :src="courtLayoutIcon" />
                   </div>
 
                   <h4 class="court-title">
@@ -1047,6 +1047,7 @@ import {
 } from '../settingsStore.js';
 
 import { createWorker } from 'tesseract.js';
+import courtLayoutIcon from '../assets/court-layout.svg';
 
 export default {
   name: 'Home',
@@ -1070,6 +1071,7 @@ export default {
 
   setup() {
     return {
+      courtLayoutIcon,
       arrowForwardOutline,
       cameraOutline,
       checkmarkCircleOutline,
@@ -4650,5 +4652,33 @@ input:focus-visible {
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+/* Compact stacked matchups retain full-width, accessible player targets. */
+.court-card-header { min-height: 44px; padding: 0.5rem 0.875rem; }
+.court-heading-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border-radius: 0.5rem;
+  background: #e6f4ed;
+}
+.court-heading-icon ion-icon { font-size: 18px; }
+.vs-matchup { gap: 0.5rem; padding: 0.625rem 0.75rem; }
+.vs-team { gap: 0.25rem; }
+.vs-team-label { margin-bottom: 0; }
+.vs-player {
+  min-height: 44px;
+  padding: 0.3125rem 0.5rem;
+  border-color: #edf0ee;
+  border-radius: 0.45rem;
+}
+.vs-divider {
+  min-height: 0;
+  height: 1px;
+  padding: 0;
+  margin-block: 0.125rem;
+  border-radius: 0;
+  background: #e1e8e3;
+  font-size: 0;
 }
 </style>
