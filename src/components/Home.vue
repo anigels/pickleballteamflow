@@ -3719,6 +3719,8 @@ export default {
   min-width: 0;
 
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
 
   font-size: 1rem;
