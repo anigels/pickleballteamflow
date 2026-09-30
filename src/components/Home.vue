@@ -1155,7 +1155,7 @@ export default {
       })).filter(group => group.players.length);
 
       if (round.sitOut.length) {
-        groups.push({
+        groups.unshift({
           key: 'sit-out',
           label: 'Sitting Out',
           players: round.sitOut.map(p => ({ player: p, side: '' }))
