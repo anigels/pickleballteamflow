@@ -502,7 +502,7 @@
                     class="court-heading-icon"
                     aria-hidden="true"
                   >
-                    <ion-icon :icon="peopleOutline" />
+                    <ion-icon :src="courtLayoutIcon" />
                   </div>
 
                   <h4 class="court-title">
@@ -1047,6 +1047,7 @@ import {
 } from '../settingsStore.js';
 
 import { createWorker } from 'tesseract.js';
+import courtLayoutIcon from '../assets/court-layout.svg';
 
 export default {
   name: 'Home',
@@ -1070,6 +1071,7 @@ export default {
 
   setup() {
     return {
+      courtLayoutIcon,
       arrowForwardOutline,
       cameraOutline,
       checkmarkCircleOutline,
@@ -4596,8 +4598,30 @@ input:focus-visible {
 .round-card-header[role="button"]:focus-visible,
 .swap-hint-dismiss:focus-visible { outline: 3px solid #198754; outline-offset: -3px; }
 .round-chevron { flex-shrink: 0; font-size: 1.25rem; color: #0e4b2e; }
-.swap-indicator { font-size: 1rem; color: #0e4b2e; margin-inline-start: auto; }
-.vs-player-name { flex: 1; overflow-wrap: anywhere; }
+.swap-indicator {
+  flex: 0 0 0.875rem;
+  width: 0.875rem;
+  font-size: 0.875rem;
+  color: #0e4b2e;
+  margin-inline: 0;
+}
+.vs-player { flex-wrap: nowrap; column-gap: 0.35rem; }
+.vs-player .player-number { margin-inline-end: 0; }
+.vs-player-name { flex: 1 1 auto; overflow-wrap: normal; }
+.court-card { container-type: inline-size; }
+.vs-matchup { grid-template-columns: minmax(0, 1fr); }
+.vs-divider {
+  width: auto;
+  height: auto;
+  min-height: 1.875rem;
+  justify-self: stretch;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+}
+.vs-team-label { text-align: left; }
+@container (max-width: 16rem) {
+  .vs-player-name { overflow-wrap: break-word; }
+}
 .complete-round-button {
   --background: #0e4b2e;
   --background-hover: #0b3d26;
@@ -4636,5 +4660,33 @@ input:focus-visible {
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+/* Compact stacked matchups retain full-width, accessible player targets. */
+.court-card-header { min-height: 44px; padding: 0.5rem 0.875rem; }
+.court-heading-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border-radius: 0.5rem;
+  background: #e6f4ed;
+}
+.court-heading-icon ion-icon { font-size: 18px; }
+.vs-matchup { gap: 0.5rem; padding: 0.625rem 0.75rem; }
+.vs-team { gap: 0.25rem; }
+.vs-team-label { margin-bottom: 0; }
+.vs-player {
+  min-height: 44px;
+  padding: 0.3125rem 0.5rem;
+  border-color: #edf0ee;
+  border-radius: 0.45rem;
+}
+.vs-divider {
+  min-height: 0;
+  height: 1px;
+  padding: 0;
+  margin-block: 0.125rem;
+  border-radius: 0;
+  background: #e1e8e3;
+  font-size: 0;
 }
 </style>
