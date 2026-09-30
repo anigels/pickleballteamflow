@@ -109,7 +109,7 @@ jobs:
           serviceAccountJson: ${{ env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_PATH }}
           packageName: com.pickleballteamflow.app
           releaseFiles: android/app/build/outputs/bundle/release/*.aab
-          track: internal
+          track: alpha
           status: completed
 
       - name: Skip Play upload (no service account secret)
