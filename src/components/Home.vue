@@ -82,6 +82,10 @@
               </div>
             </div>
 
+            <ion-button fill="outline" class="saved-library-button" @click="savedLibraryOpen = true">
+              Saved Players &amp; Rosters
+            </ion-button>
+
             <div class="roster-input-wrapper">
               <ion-textarea
                 ref="rosterTextarea"
@@ -757,6 +761,16 @@
       </div>
     </section>
 
+    <SavedRostersModal
+      v-if="savedLibraryOpen"
+      :is-open="savedLibraryOpen"
+      :persistence="rosterPersistence"
+      :names-text="namesText"
+      :has-assignments="schedule.length > 0"
+      @close="savedLibraryOpen = false"
+      @apply="applySavedRoster"
+    />
+
     <!-- =========================================================
          SWAP PLAYERS MODAL
     ========================================================== -->
@@ -1101,11 +1115,14 @@ import { createWorker } from 'tesseract.js';
 import courtLayoutIcon from '../assets/court-layout.svg';
 import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../services/rateApp.js';
 import { createRosterPersistence } from '../services/rosterPersistence.mjs';
+import SavedRostersModal from './SavedRostersModal.vue';
+import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 
 export default {
   name: 'Home',
 
   components: {
+    SavedRostersModal,
     IonButton,
     IonCard,
     IonCardContent,
@@ -1158,6 +1175,7 @@ export default {
       roundCount: data.workingRoster.roundCount,
       rosterStorageStatus: status,
       rosterStorageWarningShown: false,
+      savedLibraryOpen: false,
       schedule: [],
 
       // UI-only state.
@@ -1334,6 +1352,20 @@ export default {
   },
 
   methods: {
+    applySavedRoster(selection) {
+      try {
+        this.namesText = prepareRosterSelection({
+          ...selection,
+          data: this.rosterPersistence.snapshot().data,
+          namesText: this.namesText,
+          hasAssignments: this.schedule.length > 0
+        });
+        this.savedLibraryOpen = false;
+      } catch (error) {
+        this.showMessage(error.message, 'alert alert-warning');
+      }
+    },
+
     persistWorkingRoster() {
       const result = this.rosterPersistence.saveWorkingRoster({
         namesText: this.namesText,
@@ -2441,6 +2473,9 @@ export default {
 </script>
 
 <style scoped>
+.saved-library-button { --color: #0d5132; --border-color: #0d5132; height: auto; min-height: 2.75rem; max-width: 100%; white-space: normal; margin-bottom: 1rem; }
+.saved-library-button::part(native) { white-space: normal; padding-block: .65rem; }
+
 /* =========================================================
    BASE / OVERFLOW SAFETY
 ========================================================= */

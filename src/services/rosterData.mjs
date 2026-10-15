@@ -12,6 +12,7 @@ export function emptyRosterData() {
 
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const isLabel = value => typeof value === 'string' && value.trim().length > 0;
+const isPlayerName = value => isLabel(value) && !/[\r\n]/.test(value);
 const validCount = (value, min, max) => Number.isInteger(value) && value >= min && value <= max;
 
 export function isWorkingRoster(value) {
@@ -48,12 +49,22 @@ function copyData(data) {
   return JSON.parse(JSON.stringify(data));
 }
 
-const newId = () => globalThis.crypto.randomUUID();
+export function createRosterId(crypto = globalThis.crypto) {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  // Some embedded webviews expose secure random bytes but not randomUUID.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+const newId = () => createRosterId();
 
 export function addSavedPlayer(data, displayName, makeId = newId) {
   const next = copyData(data);
   const id = makeId();
-  if (!isLabel(displayName) || !isLabel(id) || next.players.some(p => p.id === id)) {
+  if (!isPlayerName(displayName) || !isLabel(id) || next.players.some(p => p.id === id)) {
     throw new TypeError('Invalid player name or ID');
   }
   // Equal display names are allowed; identity must never be inferred from a name.
@@ -64,7 +75,7 @@ export function addSavedPlayer(data, displayName, makeId = newId) {
 export function renameSavedPlayer(data, id, displayName) {
   const next = copyData(data);
   const player = next.players.find(p => p.id === id);
-  if (!player || !isLabel(displayName)) throw new TypeError('Invalid player');
+  if (!player || !isPlayerName(displayName)) throw new TypeError('Invalid player');
   player.displayName = displayName.trim();
   return next;
 }
@@ -77,4 +88,21 @@ export function saveNamedRoster(data, { id, name, playerIds }, makeId = newId) {
   if (index < 0) next.rosters.push(roster);
   else next.rosters[index] = roster;
   return copyData(next);
+}
+
+export function deleteNamedRoster(data, id) {
+  const next = copyData(data);
+  if (!next.rosters.some(r => r.id === id)) throw new TypeError('Roster not found');
+  next.rosters = next.rosters.filter(r => r.id !== id);
+  return next;
+}
+
+export function deleteSavedPlayer(data, id) {
+  const next = copyData(data);
+  if (next.rosters.some(r => r.playerIds.includes(id))) {
+    throw new Error('Remove this player from saved rosters before deleting them.');
+  }
+  if (!next.players.some(p => p.id === id)) throw new TypeError('Player not found');
+  next.players = next.players.filter(p => p.id !== id);
+  return next;
 }
