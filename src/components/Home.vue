@@ -1100,6 +1100,7 @@ import {
 import { createWorker } from 'tesseract.js';
 import courtLayoutIcon from '../assets/court-layout.svg';
 import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../services/rateApp.js';
+import { createRosterPersistence } from '../services/rosterPersistence.mjs';
 
 export default {
   name: 'Home',
@@ -1123,6 +1124,7 @@ export default {
 
   setup() {
     return {
+      rosterPersistence: createRosterPersistence(),
       courtLayoutIcon,
       arrowForwardOutline,
       cameraOutline,
@@ -1144,15 +1146,18 @@ export default {
   },
 
   data() {
+    const { data, status } = this.rosterPersistence.snapshot();
     return {
       isMobile:
         isPlatform('ios') ||
         isPlatform('android') ||
         isPlatform('mobile'),
 
-      namesText: '',
-      courtCount: 2,
-      roundCount: 7,
+      namesText: data.workingRoster.namesText,
+      courtCount: data.workingRoster.courtCount,
+      roundCount: data.workingRoster.roundCount,
+      rosterStorageStatus: status,
+      rosterStorageWarningShown: false,
       schedule: [],
 
       // UI-only state.
@@ -1188,6 +1193,18 @@ export default {
         duration: 4000
       }
     };
+  },
+
+  mounted() {
+    this.warnIfRosterNotSaved();
+  },
+
+  // Hydration happens in data(), before these watchers are installed. Synchronous
+  // writes avoid losing the last edit if the app is immediately closed/backgrounded.
+  watch: {
+    namesText: { handler: 'persistWorkingRoster', flush: 'sync' },
+    courtCount: { handler: 'persistWorkingRoster', flush: 'sync' },
+    roundCount: { handler: 'persistWorkingRoster', flush: 'sync' }
   },
 
   computed: {
@@ -1317,6 +1334,25 @@ export default {
   },
 
   methods: {
+    persistWorkingRoster() {
+      const result = this.rosterPersistence.saveWorkingRoster({
+        namesText: this.namesText,
+        courtCount: this.courtCount,
+        roundCount: this.roundCount
+      });
+      this.rosterStorageStatus = result.status;
+      this.warnIfRosterNotSaved();
+    },
+
+    warnIfRosterNotSaved() {
+      if (this.rosterStorageStatus === 'ready' || this.rosterStorageWarningShown) return;
+      this.rosterStorageWarningShown = true;
+      this.showMessage(
+        'Roster saving is unavailable. You can keep playing, but changes may not be kept after closing the app. Existing saved data has been left untouched.',
+        'alert alert-warning'
+      );
+    },
+
     dismissSwapHint() {
       this.swapHintDismissed = true;
       try { localStorage.setItem('ptf.swapHint.dismissed.v1', 'true'); }
