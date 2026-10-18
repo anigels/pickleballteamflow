@@ -1,20 +1,16 @@
 <template>
   <ion-modal :is-open="isOpen" class="saved-library-modal" aria-labelledby="saved-library-title"
-    @willPresent="refresh" @didDismiss="$emit('close')">
+    @willPresent="refresh" @didPresent="announceInitialStatus" @didDismiss="$emit('close')">
     <ion-content>
-      <div class="library-shell">
+      <div class="library-shell" :class="{ 'library-toast-visible': toastVisible }">
         <header class="library-header">
           <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
           <ion-button fill="outline" @click="$emit('close')">Close</ion-button>
         </header>
         <p v-if="tab !== 'save'" class="library-help">Keep players and groups on this device for another day.</p>
-        <p v-if="storageStatus !== 'ready'" role="status" class="library-notice">
-          Saving is unavailable. Changes are only available while this app stays open. Existing saved data is untouched.
-        </p>
         <p v-if="hasAssignments && tab !== 'save'" id="library-session-note" class="library-notice">
           You can manage your library now. Use Clear Assignments on Game Setup before adding players or loading a roster.
         </p>
-        <p ref="messageText" role="status" aria-live="polite" class="library-message">{{ message }}</p>
         <ion-segment v-if="tab !== 'save' && !editingRosterId" v-model="tab" aria-label="Saved library">
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
           <ion-segment-button value="rosters"><ion-label>Rosters</ion-label></ion-segment-button>
@@ -106,7 +102,6 @@
 
           <p class="library-help">Keep these players for another day. Today's game stays unchanged.</p>
           <p>{{ importReview.entries.length }} {{ importReview.entries.length === 1 ? 'player' : 'players' }}: {{ importReview.newCount }} new, {{ importReview.existingCount }} already saved.</p>
-          <p v-if="importReview.error" role="status" class="library-notice">{{ importReview.error }}</p>
           <details v-if="importReview.entries.length">
             <summary>Review player names</summary>
             <ul>
@@ -142,22 +137,15 @@
           <ion-button @click="$emit('close')">Done</ion-button>
         </section>
 
-        <section v-if="pendingDelete" class="library-panel" aria-labelledby="delete-library-title">
-          <h3 id="delete-library-title" tabindex="-1">Delete {{ pendingDelete.name }}?</h3>
-          <p>{{ pendingDelete.kind === 'roster' ? 'Only this saved roster is removed. Its players stay in your library.' : 'This removes the player from your library. Today\'s roster stays unchanged.' }}</p>
-          <div class="library-actions">
-            <ion-button color="danger" @click="confirmDelete">Confirm delete</ion-button>
-            <ion-button fill="outline" @click="pendingDelete = null">Cancel</ion-button>
-          </div>
-        </section>
       </div>
     </ion-content>
   </ion-modal>
 </template>
 
 <script>
-import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController } from '@ionic/vue';
+import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
 import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
+import { createRosterNotifier } from '../services/rosterNotifications.mjs';
 import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsing.mjs';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
@@ -176,10 +164,10 @@ export default {
   data() {
     const snapshot = this.persistence.snapshot();
     return {
-      data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, message: '',
+      data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, toastVisible: false, notifier: null, deletionPending: false,
       saveComplete: false, rosterSearch: '', importMode: 'players', importRosterName: '', importRosterId: '',
       newPlayerName: '', search: '', selectedIds: [], editingPlayerId: null, editedName: '',
-      editingRosterId: null, rosterName: '', pendingApply: null, pendingDelete: null
+      editingRosterId: null, rosterName: '', pendingApply: null
     };
   },
   computed: {
@@ -190,13 +178,18 @@ export default {
       return browseSavedPlayers(this.data.players, this.search);
     }
   },
+  created() { this.notifier = createRosterNotifier(toastController, visible => { this.toastVisible = visible; }); },
+  beforeUnmount() { this.notifier.close(); },
   watch: {
-    tab() { this.pendingApply = null; this.pendingDelete = null; },
-    message(value) {
-      if (value) this.$nextTick(() => this.$refs.messageText?.scrollIntoView({ block: 'center' }));
-    }
+    tab() { this.pendingApply = null; },
+    'importReview.error'(value) { if (this.tab === 'save' && value) this.notify(value, true); }
   },
   methods: {
+    notify(message, error = false) { void this.notifier.show(message, error); },
+    announceInitialStatus() {
+      if (this.storageStatus !== 'ready') this.notify('Saving is unavailable. Changes are in memory only. Existing saved data is untouched.', true);
+      else if (this.tab === 'save' && this.importReview.error) this.notify(this.importReview.error, true);
+    },
     async confirmRosterUpdate(name) {
       const alert = await alertController.create({
         header: 'Update saved roster?',
@@ -220,11 +213,9 @@ export default {
       const snapshot = this.persistence.snapshot();
       this.data = snapshot.data;
       this.storageStatus = snapshot.status;
-      this.message = '';
       this.saveComplete = false;
       this.rosterSearch = '';
       this.pendingApply = null;
-      this.pendingDelete = null;
       this.editingPlayerId = null;
       this.cancelRosterEdit();
       this.search = '';
@@ -234,11 +225,11 @@ export default {
         const result = this.persistence.save(change(this.persistence.snapshot().data));
         this.data = result.data;
         this.storageStatus = result.status;
-        if (result.status === 'invalid') { this.message = 'Changes could not be applied. Please check the selected players.'; return false; }
-        this.message = result.status === 'ready' ? success : 'Changes are in memory only and could not be saved on this device.';
+        if (result.status === 'invalid') { this.notify('Changes could not be applied. Please check the selected players.', true); return false; }
+        this.notify(result.status === 'ready' ? success : 'Changes are in memory only and could not be saved on this device.', result.status !== 'ready');
         return true;
       } catch (error) {
-        this.message = error.message;
+        this.notify(error.message, true);
         return false;
       }
     },
@@ -277,21 +268,31 @@ export default {
     rosterNames(roster) {
       return roster.playerIds.map(id => this.data.players.find(p => p.id === id)?.displayName).join(', ');
     },
-    requestDelete(kind, item) {
-      if (kind === 'player' && this.data.rosters.some(r => r.playerIds.includes(item.id))) {
-        this.message = 'Remove this player from saved rosters before deleting them.';
-        return;
-      }
-      this.pendingDelete = { kind, id: item.id, name: item.name ?? item.displayName };
-      this.$nextTick(() => document.getElementById('delete-library-title')?.focus());
+    async requestDelete(kind, item) {
+      if (this.deletionPending) return;
+      this.deletionPending = true;
+      try {
+        const count = this.persistence.snapshot().data.rosters.filter(r => r.playerIds.includes(item.id)).length;
+        const alert = await alertController.create({
+          header: kind === 'player' ? 'Delete saved player?' : 'Delete saved roster?',
+          subHeader: item.displayName ?? item.name,
+          cssClass: 'saved-roster-overlay',
+          message: kind === 'player'
+            ? `This player belongs to ${count} saved ${count === 1 ? 'roster' : 'rosters'}. Deleting removes them from Saved Players and all saved rosters. Today's working roster, active assignments, and completed rounds remain unchanged.`
+            : "Only this saved roster is removed. Its players stay in Saved Players. Today's roster and rounds remain unchanged.",
+          buttons: [{ text: 'Cancel', role: 'cancel' }, { text: kind === 'player' ? 'Delete Player' : 'Delete Roster', role: 'confirm', cssClass: 'roster-destructive-action' }]
+        });
+        await alert.present();
+        if ((await alert.onDidDismiss()).role === 'confirm') this.confirmDelete({ kind, id: item.id });
+      } finally { this.deletionPending = false; }
     },
-    confirmDelete() {
-      const item = this.pendingDelete;
-      if (!item) return;
-      if (this.commit(data => item.kind === 'player' ? deleteSavedPlayer(data, item.id) : deleteNamedRoster(data, item.id), 'Deleted from library.')) {
+    confirmDelete(item) {
+      if (this.commit(data => item.kind === 'player' ? deleteSavedPlayer(data, item.id) : deleteNamedRoster(data, item.id), item.kind === 'player' ? 'Player deleted from Saved Players and saved rosters.' : 'Saved roster deleted.')) {
         if (item.kind === 'roster' && item.id === this.editingRosterId) this.cancelRosterEdit();
+        if (item.kind === 'roster' && item.id === this.importRosterId) this.importRosterId = '';
+        if (item.kind === 'player' && item.id === this.editingPlayerId) { this.editingPlayerId = null; this.editedName = ''; }
         this.selectedIds = this.selectedIds.filter(id => this.data.players.some(p => p.id === id));
-        this.pendingDelete = null;
+        this.pendingApply = null;
       }
     },
     requestApply(playerIds, mode) {
@@ -302,7 +303,7 @@ export default {
           this.pendingApply = selection;
           this.$nextTick(() => document.getElementById('replace-roster-title')?.focus());
         } else this.$emit('apply', selection);
-      } catch (error) { this.message = error.message; }
+      } catch (error) { this.notify(error.message, true); }
     },
     confirmApply() {
       if (!this.pendingApply) return;
@@ -319,6 +320,7 @@ export default {
   --width: min(48rem, 100%); --height: 90%; --border-radius: 1.25rem;
 }
 .library-shell { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); color: #26312c; }
+.library-toast-visible { padding-bottom: calc(40vh + env(safe-area-inset-bottom)); }
 .library-header, .library-player-row, .library-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .library-header { justify-content: space-between; }
 h2 { font-size: 1.4rem; margin: 0; flex: 1 1 15rem; }
@@ -326,7 +328,6 @@ h3 { font-size: 1.1rem; margin: 0 0 .5rem; }
 p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-help { color: #59675f; }
 .library-notice { padding: .75rem; background: #e8f5ee; border-radius: .65rem; }
-.library-message { min-height: 1.5em; }
 .library-panel { margin-block: 1rem; padding: 1rem; border: 1px solid #dce5df; border-radius: 1rem; }
 .library-list { list-style: none; margin: 0; padding: 0; }
 .library-form { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; margin-block: 1rem; }

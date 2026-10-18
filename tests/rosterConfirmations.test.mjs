@@ -36,3 +36,17 @@ test('save completion requires durable storage, not memory-only success', async 
   await api.saveCurrentRoster.call(state); assert.equal(state.saveComplete,false);
   state.storageStatus='ready'; await api.saveCurrentRoster.call(state); assert.equal(state.saveComplete,true);
 });
+
+
+test('player deletion names affected roster count, cancel does nothing, confirm cleans editing state', async () => {
+  let role = 'cancel', options, commits = 0;
+  const data = {players:[{id:'b',displayName:'B'}],rosters:[{id:'r',playerIds:['a']},{id:'s',playerIds:['a','b']}]};
+  const api = methods('SavedRostersModal.vue', {alertController:{create:async input=>{ options=input; return {present:async()=>{},onDidDismiss:async()=>({role})}; }}});
+  const state = {data,persistence:{snapshot:()=>({data})},deletionPending:false,selectedIds:['a','b'],editingPlayerId:'a',editedName:'A',editingRosterId:'r',pendingApply:{playerIds:['a']},schedule:[{closed:true}],commit(){commits++;return true;}};
+  state.confirmDelete = item => api.confirmDelete.call(state,item);
+  await api.requestDelete.call(state,'player',{id:'a',displayName:'A'});
+  assert.match(options.message,/2 saved rosters/); assert.equal(options.subHeader,'A'); assert.equal(commits,0);
+  role='confirm'; await api.requestDelete.call(state,'player',{id:'a',displayName:'A'});
+  assert.equal(commits,1); assert.deepEqual(state.selectedIds,['b']); assert.equal(state.editingRosterId,'r');
+  assert.equal(state.editingPlayerId,null); assert.equal(state.pendingApply,null); assert.equal(state.schedule[0].closed,true);
+});
