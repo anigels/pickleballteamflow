@@ -67,6 +67,18 @@
           </div>
 
           <div class="about-block">
+            <h2 class="about-heading">Saved Players and Rosters</h2>
+            <ol class="about-list">
+              <li><strong>Prepare today’s roster.</strong> Type one name per line in Game Setup, or open <em>Saved Players &amp; Rosters</em>. In Players, select names and tap <em>Add to today's roster</em>.</li>
+              <li><strong>Load a saved group.</strong> Open Rosters, search if needed, and tap <em>Load roster</em>. Confirm replacing today's names if asked. Loading requires clearing existing assignments first.</li>
+              <li><strong>Adjust attendance.</strong> In Game Setup, remove absent names and type guests on new lines before generating. This does not change a saved roster.</li>
+              <li><strong>Save for another day.</strong> Tap <em>Save today’s roster…</em>. Save players only, save a new named roster, or choose an existing roster to update. Updating requires confirmation.</li>
+              <li><strong>Maintain your library.</strong> In Players, add or rename saved players. In Rosters, tap <em>Edit</em>, select or uncheck members, and tap <em>Save roster changes</em>. Unchecked players stay in Saved Players.</li>
+            </ol>
+            <p class="about-text">Names are listed alphabetically in Saved Players; saved rosters keep their player order. Clearing today's roster does not delete your library. Saved players, saved rosters, and today's draft stay on this device; generated rounds are not restored after closing the app.</p>
+          </div>
+
+          <div class="about-block">
             <h2 class="about-heading">Adjusting Matchups</h2>
             <p class="about-text">You can easily adjust players after a round is generated.</p>
             <ol class="about-list">

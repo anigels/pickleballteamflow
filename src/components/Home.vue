@@ -69,7 +69,7 @@
                   size="small"
                   color="medium"
                   class="clear-roster-button"
-                  aria-label="Clear player roster"
+                  aria-label="Clear today’s roster"
                   @click="clearRoster()"
                 >
                   <ion-icon
@@ -77,7 +77,7 @@
                     slot="start"
                   />
 
-                  Clear Roster
+                  Clear today’s roster
                 </ion-button>
               </div>
             </div>
@@ -86,9 +86,10 @@
               Saved Players &amp; Rosters
             </ion-button>
             <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="savedLibraryTab = 'save'; savedLibraryOpen = true">
-              Save roster…
+              Save today’s roster…
             </ion-button>
 
+            <p class="roster-instruction">For today’s attendance, remove absent names or type guests below. Saved rosters change only when you explicitly update them.</p>
             <div class="roster-input-wrapper">
               <ion-textarea
                 ref="rosterTextarea"
@@ -1081,6 +1082,7 @@ import {
   IonTextarea,
   IonToast,
   IonToggle,
+  alertController,
   isPlatform
 } from '@ionic/vue';
 
@@ -2079,7 +2081,16 @@ export default {
       );
     },
 
-    clearRoster() {
+    async clearRoster() {
+      const alert = await alertController.create({
+        header: 'Clear today’s roster?',
+        message: this.schedule.length
+          ? 'This clears today’s names and all court assignments, including completed rounds. Saved players and saved rosters stay unchanged.'
+          : 'This clears today’s names. Saved players and saved rosters stay unchanged.',
+        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Clear today’s roster', role: 'confirm' }]
+      });
+      await alert.present();
+      if ((await alert.onDidDismiss()).role !== 'confirm') return;
       this.namesText = '';
       this.schedule = [];
       this.expandedRounds = {};
