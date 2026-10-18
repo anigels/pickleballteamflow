@@ -4,21 +4,21 @@
     <ion-content>
       <div class="library-shell">
         <header class="library-header">
-          <h2 id="saved-library-title">Saved Players &amp; Rosters</h2>
+          <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
           <ion-button fill="clear" @click="$emit('close')">Close</ion-button>
         </header>
-        <p class="library-help">Keep players and groups on this device for another day.</p>
+        <p v-if="tab !== 'save'" class="library-help">Keep players and groups on this device for another day.</p>
         <p v-if="storageStatus !== 'ready'" role="status" class="library-notice">
           Saving is unavailable. Changes are only available while this app stays open. Existing saved data is untouched.
         </p>
-        <p v-if="hasAssignments" id="library-session-note" class="library-notice">
+        <p v-if="hasAssignments && tab !== 'save'" id="library-session-note" class="library-notice">
           You can manage your library now. Use Clear Assignments on Game Setup before adding players or loading a roster.
         </p>
         <p ref="messageText" role="status" aria-live="polite" class="library-message">{{ message }}</p>
-        <ion-segment v-model="tab" aria-label="Saved library">
+        <ion-segment v-if="tab !== 'save'" v-model="tab" aria-label="Saved library">
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
           <ion-segment-button value="rosters"><ion-label>Rosters</ion-label></ion-segment-button>
-          <ion-segment-button value="save"><ion-label>Save current</ion-label></ion-segment-button>
+
         </ion-segment>
 
         <section v-if="pendingApply" class="library-panel" aria-labelledby="replace-roster-title">
@@ -99,9 +99,9 @@
         </section>
 
         <section v-else aria-label="Save current roster" class="library-panel">
-          <h3>Save today's players</h3>
-          <p class="library-help">Save names you entered, pasted, or scanned in Game Setup. Today's roster and generated rounds stay unchanged.</p>
-          <p>{{ importReview.entries.length }} players: {{ importReview.newCount }} new, {{ importReview.existingCount }} already saved.</p>
+
+          <p class="library-help">Keep these players for another day. Today's game stays unchanged.</p>
+          <p>{{ importReview.entries.length }} {{ importReview.entries.length === 1 ? 'player' : 'players' }}: {{ importReview.newCount }} new, {{ importReview.existingCount }} already saved.</p>
           <p v-if="importReview.error" role="status" class="library-notice">{{ importReview.error }}</p>
           <details v-if="importReview.entries.length">
             <summary>Review player names</summary>
@@ -112,27 +112,21 @@
             </ul>
           </details>
           <form class="library-form" @submit.prevent="saveCurrentRoster">
-            <fieldset class="library-save-options">
-              <legend>Save as</legend>
-              <label><input v-model="importMode" type="radio" name="library-save-mode" value="players"> Save players only</label>
-              <label><input v-model="importMode" type="radio" name="library-save-mode" value="new"> Save as a new roster</label>
-              <label><input v-model="importMode" type="radio" name="library-save-mode" value="update" :disabled="!data.rosters.length"> Update saved roster</label>
-            </fieldset>
-            <template v-if="importMode === 'new'">
-              <label for="library-import-name">New roster name</label>
-              <input id="library-import-name" v-model="importRosterName" autocomplete="off" placeholder="e.g. Tuesday Morning">
-            </template>
+            <ion-radio-group v-model="importMode" aria-label="Save as" class="library-save-options">
+              <ion-radio value="players" label-placement="end" justify="start">Save players only</ion-radio>
+              <ion-radio value="new" label-placement="end" justify="start">Save as a new roster</ion-radio>
+              <ion-radio value="update" label-placement="end" justify="start" :disabled="!data.rosters.length">Update saved roster</ion-radio>
+            </ion-radio-group>
+            <ion-input v-if="importMode === 'new'" v-model="importRosterName" label="New roster name" label-placement="stacked" fill="outline" autocomplete="off" placeholder="e.g. Tuesday Morning" />
             <template v-if="importMode === 'update'">
-              <label for="library-update-roster">Roster to update</label>
-              <select id="library-update-roster" v-model="importRosterId">
-                <option value="" disabled>Choose a saved roster</option>
-                <option v-for="roster in data.rosters" :key="roster.id" :value="roster.id">{{ roster.name }}</option>
-              </select>
+              <ion-select v-model="importRosterId" label="Roster to update" label-placement="stacked" fill="outline" interface="popover" placeholder="Choose a saved roster">
+                <ion-select-option v-for="roster in data.rosters" :key="roster.id" :value="roster.id">{{ roster.name }}</ion-select-option>
+              </ion-select>
               <p v-if="importTarget" class="library-notice">
                 Updating “{{ importTarget.name }}” replaces its {{ importTarget.playerIds.length }} players with today's {{ importReview.entries.length }} players. Players removed from the group stay in your library.
               </p>
             </template>
-            <p class="library-help">Matching saved players are reused. Changes to today's roster never update a saved group automatically.</p>
+            <p class="library-help">Saved groups change only when you choose to update them.</p>
             <ion-button type="submit" :disabled="!!importReview.error || (importMode === 'new' && !importRosterName.trim()) || (importMode === 'update' && !importTarget)">
               {{ importMode === 'players' ? 'Save players' : importMode === 'new' ? 'Save new roster' : 'Update selected roster' }}
             </ion-button>
@@ -153,14 +147,14 @@
 </template>
 
 <script>
-import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton } from '@ionic/vue';
+import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption } from '@ionic/vue';
 import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
 
 export default {
   name: 'SavedRostersModal',
-  components: { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton },
+  components: { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
   props: {
     isOpen: Boolean,
     initialTab: { type: String, default: 'players' },
@@ -324,8 +318,10 @@ input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizin
 input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: #0d5132; }
 input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #13764b; outline-offset: 2px; }
 summary { cursor: pointer; min-height: 2.75rem; padding-block: .5rem; }
-.library-save-options { min-width: 0; border: 0; padding: 0; margin: .5rem 0; }
-.library-save-options label { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding-block: .5rem; cursor: pointer; }
+.library-save-options { display: grid; gap: .25rem; min-width: 0; margin: .5rem 0; }
+ion-radio { min-height: 2.75rem; padding-block: .5rem; white-space: normal; }
+ion-radio::part(label) { white-space: normal; overflow-wrap: break-word; }
+ion-input, ion-select { min-width: 0; font-size: 1rem; }
 input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: #0d5132; }
 ion-button { min-height: 2.75rem; height: auto; max-width: 100%; white-space: normal; font-size: 1rem; }
 ion-button::part(native) { white-space: normal; padding-block: .65rem; }
