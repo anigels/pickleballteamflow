@@ -18,6 +18,7 @@
         <ion-segment v-model="tab" aria-label="Saved library">
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
           <ion-segment-button value="rosters"><ion-label>Rosters</ion-label></ion-segment-button>
+          <ion-segment-button value="save"><ion-label>Save current</ion-label></ion-segment-button>
         </ion-segment>
 
         <section v-if="pendingApply" class="library-panel" aria-labelledby="replace-roster-title">
@@ -81,7 +82,7 @@
           </div>
         </section>
 
-        <section v-else aria-label="Saved rosters">
+        <section v-else-if="tab === 'rosters'" aria-label="Saved rosters">
           <p v-if="!data.rosters.length" class="library-help">Select players in the Players tab and give the group a name to save your first roster.</p>
           <ul class="library-list">
             <li v-for="roster in data.rosters" :key="roster.id" class="library-panel">
@@ -95,6 +96,47 @@
               </div>
             </li>
           </ul>
+        </section>
+
+        <section v-else aria-label="Save current roster" class="library-panel">
+          <h3>Save today's players</h3>
+          <p class="library-help">Save names you entered, pasted, or scanned in Game Setup. Today's roster and generated rounds stay unchanged.</p>
+          <p>{{ importReview.entries.length }} players: {{ importReview.newCount }} new, {{ importReview.existingCount }} already saved.</p>
+          <p v-if="importReview.error" role="status" class="library-notice">{{ importReview.error }}</p>
+          <details v-if="importReview.entries.length">
+            <summary>Review player names</summary>
+            <ul>
+              <li v-for="(entry, index) in importReview.entries" :key="index">
+                {{ entry.name }} — {{ entry.repeated || entry.matches.length > 1 ? 'Needs review' : entry.matches.length ? 'Use saved player' : 'Add new player' }}
+              </li>
+            </ul>
+          </details>
+          <form class="library-form" @submit.prevent="saveCurrentRoster">
+            <fieldset class="library-save-options">
+              <legend>Save as</legend>
+              <label><input v-model="importMode" type="radio" name="library-save-mode" value="players"> Save players only</label>
+              <label><input v-model="importMode" type="radio" name="library-save-mode" value="new"> Save as a new roster</label>
+              <label><input v-model="importMode" type="radio" name="library-save-mode" value="update" :disabled="!data.rosters.length"> Update saved roster</label>
+            </fieldset>
+            <template v-if="importMode === 'new'">
+              <label for="library-import-name">New roster name</label>
+              <input id="library-import-name" v-model="importRosterName" autocomplete="off" placeholder="e.g. Tuesday Morning">
+            </template>
+            <template v-if="importMode === 'update'">
+              <label for="library-update-roster">Roster to update</label>
+              <select id="library-update-roster" v-model="importRosterId">
+                <option value="" disabled>Choose a saved roster</option>
+                <option v-for="roster in data.rosters" :key="roster.id" :value="roster.id">{{ roster.name }}</option>
+              </select>
+              <p v-if="importTarget" class="library-notice">
+                Updating “{{ importTarget.name }}” replaces its {{ importTarget.playerIds.length }} players with today's {{ importReview.entries.length }} players. Players removed from the group stay in your library.
+              </p>
+            </template>
+            <p class="library-help">Matching saved players are reused. Changes to today's roster never update a saved group automatically.</p>
+            <ion-button type="submit" :disabled="!!importReview.error || (importMode === 'new' && !importRosterName.trim()) || (importMode === 'update' && !importTarget)">
+              {{ importMode === 'players' ? 'Save players' : importMode === 'new' ? 'Save new roster' : 'Update selected roster' }}
+            </ion-button>
+          </form>
         </section>
 
         <section v-if="pendingDelete" class="library-panel" aria-labelledby="delete-library-title">
@@ -114,12 +156,14 @@
 import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton } from '@ionic/vue';
 import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
+import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
 
 export default {
   name: 'SavedRostersModal',
   components: { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton },
   props: {
     isOpen: Boolean,
+    initialTab: { type: String, default: 'players' },
     hasAssignments: Boolean,
     namesText: { type: String, default: '' },
     persistence: { type: Object, required: true }
@@ -128,12 +172,15 @@ export default {
   data() {
     const snapshot = this.persistence.snapshot();
     return {
-      data: snapshot.data, storageStatus: snapshot.status, tab: 'players', message: '',
+      data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, message: '',
+      importMode: 'players', importRosterName: '', importRosterId: '',
       newPlayerName: '', search: '', selectedIds: [], editingPlayerId: null, editedName: '',
       editingRosterId: null, rosterName: '', pendingApply: null, pendingDelete: null
     };
   },
   computed: {
+    importReview() { return reviewRosterImport(this.data, this.namesText); },
+    importTarget() { return this.data.rosters.find(roster => roster.id === this.importRosterId); },
     filteredPlayers() {
       const query = this.search.trim().toLowerCase();
       return this.data.players.filter(p => p.displayName.toLowerCase().includes(query));
@@ -146,6 +193,17 @@ export default {
     }
   },
   methods: {
+    saveCurrentRoster() {
+      const creating = this.importMode === 'new';
+      const saved = this.commit(data => saveRosterFromText(data, {
+        namesText: this.namesText, mode: this.importMode,
+        rosterName: this.importRosterName, rosterId: this.importRosterId
+      }), this.importMode === 'players' ? 'Players saved to your library.' : this.importMode === 'new' ? 'New roster saved.' : 'Saved roster updated.');
+      if (saved && creating) {
+        this.importRosterId = this.data.rosters[this.data.rosters.length - 1].id;
+        this.importMode = 'update';
+      }
+    },
     refresh() {
       const snapshot = this.persistence.snapshot();
       this.data = snapshot.data;
@@ -262,9 +320,13 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-player-label { display: flex; align-items: center; gap: .75rem; flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; cursor: pointer; }
 .library-player-label span { min-width: 0; }
 small { display: block; font-size: .8rem; color: #59675f; overflow-wrap: anywhere; }
-input:not([type=checkbox]) { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
+input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
 input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: #0d5132; }
-input:focus-visible { outline: 3px solid #13764b; outline-offset: 2px; }
+input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #13764b; outline-offset: 2px; }
+summary { cursor: pointer; min-height: 2.75rem; padding-block: .5rem; }
+.library-save-options { min-width: 0; border: 0; padding: 0; margin: .5rem 0; }
+.library-save-options label { display: flex; align-items: center; gap: .75rem; min-height: 2.75rem; padding-block: .5rem; cursor: pointer; }
+input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: #0d5132; }
 ion-button { min-height: 2.75rem; height: auto; max-width: 100%; white-space: normal; font-size: 1rem; }
 ion-button::part(native) { white-space: normal; padding-block: .65rem; }
 ion-segment-button { min-width: 0; min-height: 2.75rem; }
