@@ -1,5 +1,5 @@
 /* Reuse the existing saved-library Ionic palette for this workflow only. */
-.saved-library-modal, .saved-roster-overlay, .saved-library-button {
+.saved-library-modal, .saved-roster-overlay, .saved-library-button, .saved-roster-toast {
   --ion-color-primary: #0d5132;
   --ion-color-primary-rgb: 13, 81, 50;
   --ion-color-primary-contrast: #fff;
@@ -117,3 +117,17 @@
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);
 }
+
+.saved-roster-toast {
+  --color: #fff;
+  --button-color: #fff;
+  --width: calc(100% - 2rem);
+  --max-width: 40rem;
+  --border-radius: .75rem;
+  --box-shadow: 0 3px 12px #0004;
+}
+.saved-roster-toast.roster-toast-success { --background: var(--ion-color-primary); }
+.saved-roster-toast.roster-toast-error { --background: var(--ion-color-danger-shade, #b42332); }
+.saved-roster-toast::part(message) { font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; max-height: 35vh; overflow-y: auto; }
+.saved-roster-toast::part(button) { min-height: 44px; font-size: 1rem; text-decoration: underline; }
+.saved-roster-toast::part(button):focus-visible { outline: 3px solid #fff; outline-offset: -3px; }

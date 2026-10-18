@@ -106,10 +106,8 @@ export function deleteNamedRoster(data, id) {
 
 export function deleteSavedPlayer(data, id) {
   const next = copyData(data);
-  if (next.rosters.some(r => r.playerIds.includes(id))) {
-    throw new Error('Remove this player from saved rosters before deleting them.');
-  }
   if (!next.players.some(p => p.id === id)) throw new TypeError('Player not found');
   next.players = next.players.filter(p => p.id !== id);
+  for (const roster of next.rosters) roster.playerIds = roster.playerIds.filter(playerId => playerId !== id);
   return next;
 }

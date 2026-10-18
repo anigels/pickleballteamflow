@@ -70,7 +70,7 @@ test('library CRUD persists across reopen and keeps draft and unrelated storage 
   assert.deepEqual(restored.rosters[0], { id: 'r', name: 'Wednesday', playerIds: ['b', 'a'] });
   assert.equal(restored.players[0].displayName, 'Marco R');
   assert.equal(restored.workingRoster.namesText, 'Existing draft');
-  assert.throws(() => deleteSavedPlayer(restored, 'a'), /saved rosters/);
+  assert.deepEqual(deleteSavedPlayer(restored, 'a').rosters[0].playerIds, ['b']);
   const deleted = deleteSavedPlayer(deleteNamedRoster(restored, 'r'), 'a');
   store.save(deleted);
   assert.deepEqual(createRosterPersistence(() => storage).snapshot().data.players.map(p => p.id), ['b']);
