@@ -1,0 +1,119 @@
+/* Reuse the existing saved-library Ionic palette for this workflow only. */
+.saved-library-modal, .saved-roster-overlay, .saved-library-button {
+  --ion-color-primary: #0d5132;
+  --ion-color-primary-rgb: 13, 81, 50;
+  --ion-color-primary-contrast: #fff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0b472c;
+  --ion-color-primary-tint: #256245;
+}
+.saved-library-modal ion-button:not([color]), .saved-library-button {
+  --background-hover: var(--ion-color-primary-shade);
+  --background-activated: var(--ion-color-primary-shade);
+  --background-focused: var(--ion-color-primary-shade);
+  --ripple-color: var(--ion-color-primary-contrast);
+}
+.saved-library-modal ion-button[fill=outline]:not([color]), .saved-library-button {
+  --color: var(--ion-color-primary);
+  --border-color: var(--ion-color-primary);
+  --background-hover: rgba(var(--ion-color-primary-rgb), .12);
+  --background-activated: rgba(var(--ion-color-primary-rgb), .18);
+  --background-focused: rgba(var(--ion-color-primary-rgb), .12);
+  --ripple-color: var(--ion-color-primary);
+}
+.saved-library-modal ion-button::part(native):focus-visible,
+.saved-library-button::part(native):focus-visible,
+.saved-library-modal ion-radio:focus-visible,
+.saved-library-modal ion-segment-button::part(native):focus-visible,
+.saved-library-modal ion-select:focus-within {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 3px;
+}
+.saved-library-modal ion-input, .saved-library-modal ion-select {
+  --highlight-color-focused: var(--ion-color-primary);
+}
+.saved-library-modal ion-radio, .saved-roster-overlay ion-radio {
+  --color-checked: var(--ion-color-primary);
+}
+.saved-library-modal ion-segment-button {
+  --color: var(--ion-color-primary);
+  --color-checked: var(--ion-color-primary-contrast);
+  --background-checked: var(--ion-color-primary);
+  --indicator-color: var(--ion-color-primary);
+  --border-radius: .5rem;
+  border: 1px solid var(--ion-color-primary);
+  border-radius: .5rem;
+  margin: .2rem;
+}
+.saved-library-modal .library-player-label {
+  border: 1px solid #88978e;
+  border-radius: .5rem;
+  padding: .65rem;
+}
+.saved-library-modal .library-player-label:has(input:checked) {
+  border-color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), .1);
+  box-shadow: inset 3px 0 var(--ion-color-primary);
+}
+.saved-library-modal .library-player-label:focus-within {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+.saved-library-modal ion-radio {
+  border: 1px solid #88978e;
+  border-radius: .5rem;
+  padding: .65rem;
+}
+.saved-library-modal ion-radio[aria-checked=true] {
+  border-color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), .1);
+}
+.saved-library-modal .library-actions { gap: .75rem; }
+.saved-roster-overlay .alert-button {
+  color: var(--ion-color-primary);
+  border: 1px solid currentColor;
+  border-radius: .5rem;
+  min-height: 44px;
+  height: auto;
+  margin: .35rem;
+  padding: .75rem;
+  font-size: 1rem;
+}
+.saved-roster-overlay .alert-button-group { flex-wrap: wrap; }
+.saved-roster-overlay .alert-button-inner { white-space: normal; }
+.saved-roster-overlay .roster-confirm-action {
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary);
+}
+.saved-roster-overlay .roster-destructive-action {
+  color: var(--ion-color-danger-shade, #cf3c4f);
+}
+.saved-roster-overlay .alert-button:focus-visible,
+.saved-roster-overlay ion-item:focus-within {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: -3px;
+}
+.saved-roster-overlay .alert-button:hover,
+.saved-roster-overlay .alert-button:active {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+.saved-roster-overlay ion-item {
+  --min-height: 48px;
+  --color: var(--ion-color-primary);
+  --background-hover: rgba(var(--ion-color-primary-rgb), .12);
+  --background-activated: rgba(var(--ion-color-primary-rgb), .18);
+}
+
+.saved-roster-overlay .roster-confirm-action:focus-visible {
+  outline-color: var(--ion-color-primary-contrast);
+  outline-offset: -5px;
+}
+
+/* Ionic iOS adds ion-focused and its own gray background to alert buttons. */
+.saved-roster-overlay .alert-button.roster-confirm-action,
+.saved-roster-overlay .alert-button.roster-confirm-action.ion-focused,
+.saved-roster-overlay .alert-button.roster-confirm-action:hover,
+.saved-roster-overlay .alert-button.roster-confirm-action:active {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}

@@ -2084,10 +2084,11 @@ export default {
     async clearRoster() {
       const alert = await alertController.create({
         header: 'Clear today’s roster?',
+        cssClass: 'saved-roster-overlay',
         message: this.schedule.length
           ? 'This clears today’s names and all court assignments, including completed rounds. Saved players and saved rosters stay unchanged.'
           : 'This clears today’s names. Saved players and saved rosters stay unchanged.',
-        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Clear today’s roster', role: 'confirm' }]
+        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Clear today’s roster', role: 'confirm', cssClass: 'roster-destructive-action' }]
       });
       await alert.present();
       if ((await alert.onDidDismiss()).role !== 'confirm') return;
@@ -2489,7 +2490,7 @@ export default {
 </script>
 
 <style scoped>
-.saved-library-button { --color: #0d5132; --border-color: #0d5132; height: auto; min-height: 2.75rem; max-width: 100%; white-space: normal; margin-bottom: 1rem; }
+.saved-library-button { --color: var(--ion-color-primary); --border-color: var(--ion-color-primary); height: auto; min-height: 2.75rem; max-width: 100%; white-space: normal; margin-bottom: 1rem; }
 .saved-library-button::part(native) { white-space: normal; padding-block: .65rem; }
 
 /* =========================================================
