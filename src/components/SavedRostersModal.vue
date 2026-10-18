@@ -5,7 +5,7 @@
       <div class="library-shell">
         <header class="library-header">
           <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
-          <ion-button fill="clear" @click="$emit('close')">Close</ion-button>
+          <ion-button fill="outline" @click="$emit('close')">Close</ion-button>
         </header>
         <p v-if="tab !== 'save'" class="library-help">Keep players and groups on this device for another day.</p>
         <p v-if="storageStatus !== 'ready'" role="status" class="library-notice">
@@ -41,7 +41,7 @@
             <p class="library-help">{{ selectedIds.length }} selected. Select players below. Unchecking a player removes them from this selection, not from Saved Players.</p>
             <div class="library-actions">
               <ion-button v-if="!editingRosterId" :disabled="hasAssignments || !selectedIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">Add to today's roster</ion-button>
-              <ion-button fill="clear" :disabled="!selectedIds.length" @click="selectedIds = []">Clear selection</ion-button>
+              <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear selection</ion-button>
             </div>
             <form class="library-form" @submit.prevent="saveRoster">
               <label for="library-roster-name">Roster name</label>
@@ -65,8 +65,8 @@
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </label>
                 <div class="library-actions">
-                  <ion-button fill="clear" :aria-label="`Rename ${player.displayName}`" @click="startRename(player)">Rename</ion-button>
-                  <ion-button fill="clear" color="medium" :aria-label="`Delete ${player.displayName}`" @click="requestDelete('player', player)">Delete</ion-button>
+                  <ion-button fill="outline" :aria-label="`Rename ${player.displayName}`" @click="startRename(player)">Rename</ion-button>
+                  <ion-button fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" @click="requestDelete('player', player)">Delete</ion-button>
                 </div>
               </div>
               <form v-if="editingPlayerId === player.id" class="library-form" @submit.prevent="renamePlayer">
@@ -96,7 +96,7 @@
               <div class="library-actions">
                 <ion-button :disabled="hasAssignments || !roster.playerIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" :aria-label="`Load ${roster.name}`" @click="requestApply(roster.playerIds, 'replace')">Load roster</ion-button>
                 <ion-button fill="outline" :aria-label="`Edit ${roster.name}`" @click="editRoster(roster)">Edit</ion-button>
-                <ion-button fill="clear" color="medium" :aria-label="`Delete ${roster.name}`" @click="requestDelete('roster', roster)">Delete</ion-button>
+                <ion-button fill="outline" color="danger" :aria-label="`Delete ${roster.name}`" @click="requestDelete('roster', roster)">Delete</ion-button>
               </div>
             </li>
           </ul>
@@ -123,7 +123,7 @@
             </ion-radio-group>
             <ion-input v-if="importMode === 'new'" v-model="importRosterName" label="New roster name" label-placement="stacked" fill="outline" autocomplete="off" placeholder="e.g. Tuesday Morning" />
             <template v-if="importMode === 'update'">
-              <ion-select v-model="importRosterId" label="Roster to update" label-placement="stacked" fill="outline" interface="popover" placeholder="Choose a saved roster">
+              <ion-select v-model="importRosterId" label="Roster to update" label-placement="stacked" fill="outline" interface="popover" :interface-options="{ cssClass: 'saved-roster-overlay' }" placeholder="Choose a saved roster">
                 <ion-select-option v-for="roster in data.rosters" :key="roster.id" :value="roster.id">{{ roster.name }}</ion-select-option>
               </ion-select>
               <p v-if="importTarget" class="library-notice">
@@ -200,9 +200,10 @@ export default {
     async confirmRosterUpdate(name) {
       const alert = await alertController.create({
         header: 'Update saved roster?',
+        cssClass: 'saved-roster-overlay',
         message: 'Replace the saved name and player selection? Players removed from this roster stay in Saved Players. Today’s roster stays unchanged.',
         subHeader: name || 'Saved roster',
-        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Update saved roster', role: 'confirm' }]
+        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Update saved roster', role: 'confirm', cssClass: 'roster-confirm-action' }]
       });
       await alert.present();
       return (await alert.onDidDismiss()).role === 'confirm';
@@ -316,8 +317,6 @@ export default {
 <style scoped>
 .saved-library-modal {
   --width: min(48rem, 100%); --height: 90%; --border-radius: 1.25rem;
-  --ion-color-primary: #0d5132; --ion-color-primary-rgb: 13, 81, 50;
-  --ion-color-primary-contrast: #fff; --ion-color-primary-shade: #0b472c; --ion-color-primary-tint: #256245;
 }
 .library-shell { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); color: #26312c; }
 .library-header, .library-player-row, .library-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
@@ -335,18 +334,23 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-player-label span { min-width: 0; }
 small { display: block; font-size: .8rem; color: #59675f; overflow-wrap: anywhere; }
 input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
-input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: #0d5132; }
-input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #13764b; outline-offset: 2px; }
-summary { cursor: pointer; min-height: 2.75rem; padding-block: .5rem; }
+input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: var(--ion-color-primary); }
+input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--ion-color-primary); outline-offset: 2px; }
+summary { color: var(--ion-color-primary); border: 1px solid currentColor; border-radius: .5rem; padding-inline: .75rem; cursor: pointer; min-height: 2.75rem; padding-block: .5rem; }
 .library-save-options { display: grid; gap: .25rem; min-width: 0; margin: .5rem 0; }
 ion-radio { min-height: 2.75rem; padding-block: .5rem; white-space: normal; }
 ion-radio::part(label) { white-space: normal; overflow-wrap: break-word; }
 ion-input, ion-select { min-width: 0; font-size: 1rem; }
-input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: #0d5132; }
+input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: var(--ion-color-primary); }
 ion-button { min-height: 2.75rem; height: auto; max-width: 100%; white-space: normal; font-size: 1rem; }
 ion-button::part(native) { white-space: normal; padding-block: .65rem; }
 .saved-library-modal ion-segment { display: flex; flex-wrap: wrap; }
 .saved-library-modal ion-segment-button { flex: 1 0 8rem; max-width: 100%; min-width: 0; min-height: 2.75rem; }
 ion-label { white-space: normal; font-size: 1rem; }
 @media (max-width: 35rem) { .saved-library-modal { --height: 100%; --border-radius: 0; } }
+</style>
+
+<style>
+/* Portaled Ionic overlays cannot inherit component-scoped theme variables. */
+@import '../services/rosterUi.css';
 </style>
