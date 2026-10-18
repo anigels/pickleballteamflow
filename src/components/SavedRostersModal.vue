@@ -58,6 +58,7 @@
               <div class="library-player-row">
                 <label class="library-player-label">
                   <input v-model="selectedIds" type="checkbox" :value="player.id">
+                  <img class="library-player-badge" src="../assets/saved-player-pickleball.png" width="38" height="38" alt="" aria-hidden="true">
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </label>
                 <div class="library-actions">
@@ -333,6 +334,7 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-form { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; margin-block: 1rem; }
 .library-player-label { display: flex; align-items: center; gap: .75rem; flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; cursor: pointer; }
 .library-player-label span { min-width: 0; }
+.library-player-badge { width: 38px; height: 38px; flex: 0 0 38px; object-fit: contain; pointer-events: none; }
 small { display: block; font-size: .8rem; color: #59675f; overflow-wrap: anywhere; }
 input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
 input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: var(--ion-color-primary); }
