@@ -58,6 +58,19 @@
               <div class="library-player-row">
                 <label class="library-player-label">
                   <input v-model="selectedIds" type="checkbox" :value="player.id">
+                  <svg class="library-player-badge" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+                    <circle cx="20" cy="20" r="20" fill="#e9f7ef" />
+                    <circle cx="20" cy="20" r="14" fill="#c5e86c" />
+                    <g fill="currentColor">
+                      <circle cx="20" cy="20" r="2.6" />
+                      <ellipse cx="20" cy="10.5" rx="2.4" ry="1.8" />
+                      <ellipse cx="20" cy="29.5" rx="2.4" ry="1.8" />
+                      <ellipse cx="11.8" cy="15.3" rx="1.9" ry="2.4" transform="rotate(30 11.8 15.3)" />
+                      <ellipse cx="28.2" cy="24.7" rx="1.9" ry="2.4" transform="rotate(30 28.2 24.7)" />
+                      <ellipse cx="28.2" cy="15.3" rx="1.9" ry="2.4" transform="rotate(-30 28.2 15.3)" />
+                      <ellipse cx="11.8" cy="24.7" rx="1.9" ry="2.4" transform="rotate(-30 11.8 24.7)" />
+                    </g>
+                  </svg>
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </label>
                 <div class="library-actions">
@@ -333,6 +346,7 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-form { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; margin-block: 1rem; }
 .library-player-label { display: flex; align-items: center; gap: .75rem; flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; cursor: pointer; }
 .library-player-label span { min-width: 0; }
+.library-player-badge { width: 38px; height: 38px; flex: 0 0 38px; color: var(--ion-color-primary); pointer-events: none; }
 small { display: block; font-size: .8rem; color: #59675f; overflow-wrap: anywhere; }
 input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
 input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: var(--ion-color-primary); }
