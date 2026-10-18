@@ -7,9 +7,12 @@
           <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
           <ion-button fill="outline" @click="$emit('close')">Close</ion-button>
         </header>
-        <p v-if="tab !== 'save'" class="library-help">Keep players and groups on this device for another day.</p>
+        <details v-if="tab !== 'save'" class="library-context-help">
+          <summary>About saved rosters</summary>
+          <p class="library-help">Keep a group for another day. Select players to create a roster, or load one from Rosters. Edits to today's names do not change saved groups. Find full instructions in Help.</p>
+        </details>
         <p v-if="hasAssignments && tab !== 'save'" id="library-session-note" class="library-notice">
-          You can manage your library now. Use Clear Assignments on Game Setup before adding players or loading a roster.
+          To add players to today's roster or load a roster, first use Clear Assignments in Game Setup.
         </p>
         <ion-segment v-if="tab !== 'save' && !editingRosterId" v-model="tab" aria-label="Saved library">
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
@@ -34,7 +37,7 @@
           </form>
           <div class="library-panel">
             <h3 id="roster-selection-title" tabindex="-1">{{ editingRosterId ? 'Editing saved roster: ' + rosterName : 'Use selected players' }}</h3>
-            <p class="library-help">{{ selectedIds.length }} selected. Select players below. Unchecking a player removes them from this selection, not from Saved Players.</p>
+            <p class="library-help">Select players below. Unchecking keeps them in Saved Players.</p>
             <div class="library-actions">
               <ion-button v-if="!editingRosterId" :disabled="hasAssignments || !selectedIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">Add to today's roster</ion-button>
               <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear selection</ion-button>
@@ -51,7 +54,7 @@
           <label for="library-search">Search players</label>
           <input id="library-search" v-model="search" type="search" autocomplete="off">
           <p class="library-help">{{ data.players.length }} saved {{ data.players.length === 1 ? 'player' : 'players' }} · {{ selectedIds.length }} selected</p>
-          <p v-if="!data.players.length">Add your first saved player above. You can also close this screen and type names directly in Game Setup.</p>
+          <p v-if="!data.players.length">Add your first player above, or type today's names in Game Setup.</p>
           <p v-else-if="!filteredPlayers.length">No players match your search.</p>
           <ul class="library-list">
             <li v-for="player in filteredPlayers" :key="player.id" class="library-panel">
@@ -84,7 +87,7 @@
           <label v-if="data.rosters.length" for="saved-roster-search">Search saved rosters</label>
           <input v-if="data.rosters.length" id="saved-roster-search" v-model="rosterSearch" type="search" autocomplete="off">
           <p v-if="data.rosters.length && !filteredRosters.length">No saved rosters match your search.</p>
-          <p v-if="!data.rosters.length" class="library-help">Create your first saved roster by selecting players in the Players tab, or close this screen, type names in Game Setup, and choose Save today’s roster….</p>
+          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or use Save today’s roster… in Game Setup.</p>
           <ul class="library-list">
             <li v-for="roster in filteredRosters" :key="roster.id" class="library-panel">
               <h3>{{ roster.name }}</h3>
@@ -126,7 +129,6 @@
                 Updating “{{ importTarget.name }}” replaces its {{ importTarget.playerIds.length }} players with today's {{ importReview.entries.length }} players. Players removed from the group stay in your library.
               </p>
             </template>
-            <p class="library-help">Saved groups change only when you choose to update them.</p>
             <ion-button type="submit" :disabled="!!importReview.error || (importMode === 'new' && !importRosterName.trim()) || (importMode === 'update' && !importTarget)">
               {{ importMode === 'players' ? 'Save players' : importMode === 'new' ? 'Save new roster' : 'Update selected roster' }}
             </ion-button>
@@ -328,6 +330,7 @@ h2 { font-size: 1.4rem; margin: 0; flex: 1 1 15rem; }
 h3 { font-size: 1.1rem; margin: 0 0 .5rem; }
 p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-help { color: #59675f; }
+.library-context-help { margin-block: 1rem; }
 .library-notice { padding: .75rem; background: #e8f5ee; border-radius: .65rem; }
 .library-panel { margin-block: 1rem; padding: 1rem; border: 1px solid #dce5df; border-radius: 1rem; }
 .library-list { list-style: none; margin: 0; padding: 0; }

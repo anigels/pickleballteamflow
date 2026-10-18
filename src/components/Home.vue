@@ -42,10 +42,6 @@
                 Game Setup
               </h2>
 
-              <div class="small text-secondary">
-                Everything you need to create your court
-                assignments.
-              </div>
             </div>
           </div>
 
@@ -57,7 +53,7 @@
                 </div>
 
                 <div id="roster-instructions" class="roster-instruction">
-                  Tap the box below and enter one player per line.
+                  Enter one player per line.
                 </div>
               </div>
 
@@ -83,13 +79,14 @@
             </div>
 
             <ion-button fill="outline" class="saved-library-button" @click="savedLibraryTab = 'players'; savedLibraryOpen = true">
+              <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />
               Saved Players &amp; Rosters
             </ion-button>
             <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="savedLibraryTab = 'save'; savedLibraryOpen = true">
               Save today’s roster…
             </ion-button>
 
-            <p class="roster-instruction">For today’s attendance, remove absent names or type guests below. Saved rosters change only when you explicitly update them.</p>
+            <p class="roster-instruction">Edit today’s names below. Saved rosters stay unchanged.</p>
             <div class="roster-input-wrapper">
               <ion-textarea
                 ref="rosterTextarea"

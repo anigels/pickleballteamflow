@@ -115,7 +115,7 @@
           />
 
           <span class="tab-label">
-            About
+            Help
           </span>
         </button>
 
@@ -189,7 +189,7 @@
                 />
 
                 <ion-label>
-                  About
+                  Help
                 </ion-label>
               </ion-item>
             </router-link>

@@ -1,166 +1,29 @@
 <template>
   <div class="about-page">
-    <section class="about-section mb-4">
-      <div class="page-heading text-center mb-4">
-        <div class="section-eyebrow">
-          PICKLEBALL TEAM FLOW
-        </div>
-
-        <h1 class="page-title mb-2">
-          About Pickleball Team Flow
-        </h1>
-
-        <p class="page-subtitle text-secondary mb-0">
-          Fair court assignments across multiple courts and rounds.
+    <header class="page-heading text-center mb-4">
+      <div class="section-eyebrow">PICKLEBALL TEAM FLOW</div>
+      <h1 class="page-title mb-2">Help &amp; About</h1>
+      <p class="page-subtitle">Find answers when you need them.</p>
+    </header>
+    <ion-card class="about-card">
+      <ion-card-content class="about-card-content">
+        <ion-input v-model="query" type="search" label="Search help topics" label-placement="stacked" fill="outline"
+          :clear-input="true" placeholder="e.g. roster, swap, scan" class="help-search" />
+        <p v-if="query.trim()" role="status" aria-live="polite" class="about-text">
+          {{ filteredTopics.length ? `${filteredTopics.length} ${filteredTopics.length === 1 ? 'topic' : 'topics'} found` : 'No matching topics. Try “roster”, “swap”, or “scan”.' }}
         </p>
-      </div>
-
-      <ion-card class="about-card">
-        <ion-card-content class="about-card-content">
-          <div class="about-block">
-            <h2 class="about-heading">
-              Pickleball Team Flow
-            </h2>
-
-            <p class="about-text">
-              Quickly create fair pickleball court assignments across
-              multiple courts and rounds. Pickleball Team Flow helps
-              rotate players, vary partners and opponents, and distribute
-              sit-out periods as evenly as possible.
-            </p>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">
-              How to Use
-            </h2>
-
-            <ol class="about-list">
-              <li>
-                <strong>Add your players.</strong>
-                Enter one player name per line in the Player Roster, or use
-                <em>Scan Names from Photo</em> to capture a list with your camera.
-              </li>
-              <li>
-                <strong>Choose your courts and rounds.</strong>
-                Select the number of available courts and how many rounds you want to generate.
-              </li>
-              <li>
-                <strong>Generate court assignments.</strong>
-                Tap <em>Generate Court Assignments</em> to create the schedule.
-              </li>
-              <li>
-                <strong>Play each round.</strong>
-                Players are assigned to courts, while any players not needed for that round appear
-                in the Sit Out section.
-              </li>
-              <li>
-                <strong>Adjust matchups when needed.</strong>
-                In an open round, tap a court player to swap positions with another court player or someone sitting out.
-              </li>
-              <li>
-                <strong>Complete each round.</strong>
-                Tap Complete Round once it is finished. If your player roster changes, you can regenerate
-                the remaining open rounds without changing completed rounds.
-              </li>
-            </ol>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">Saved Players and Rosters</h2>
-            <ol class="about-list">
-              <li><strong>Prepare today’s roster.</strong> Type one name per line in Game Setup, or open <em>Saved Players &amp; Rosters</em>. In Players, select names and tap <em>Add to today's roster</em>.</li>
-              <li><strong>Load a saved group.</strong> Open Rosters, search if needed, and tap <em>Load roster</em>. Confirm replacing today's names if asked. Loading requires clearing existing assignments first.</li>
-              <li><strong>Adjust attendance.</strong> In Game Setup, remove absent names and type guests on new lines before generating. This does not change a saved roster.</li>
-              <li><strong>Save for another day.</strong> Tap <em>Save today’s roster…</em>. Save players only, save a new named roster, or choose an existing roster to update. Updating requires confirmation.</li>
-              <li><strong>Maintain your library.</strong> In Players, add or rename saved players. In Rosters, tap <em>Edit</em>, select or uncheck members, and tap <em>Save roster changes</em>. Unchecked players stay in Saved Players.</li>
-            </ol>
-            <p class="about-text">Names are listed alphabetically in Saved Players; saved rosters keep their player order. Clearing today's roster does not delete your library. Saved players, saved rosters, and today's draft stay on this device; generated rounds are not restored after closing the app.</p>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">Adjusting Matchups</h2>
-            <p class="about-text">You can easily adjust players after a round is generated.</p>
-            <ol class="about-list">
-              <li>Tap any court player in an open round.</li>
-              <li>Choose another player on a court or a player sitting out to swap with.</li>
-              <li>Only those two players change positions — the rest of the round stays the same.</li>
-            </ol>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">Completing Rounds</h2>
-            <p class="about-text">
-              When a round is finished, tap Complete Round. Completed rounds collapse
-              automatically to keep upcoming rounds easy to see. Tap a completed round's
-              header or chevron anytime to expand it and review the matchups.
-            </p>
-          </div>
-
-          <div class="about-tip">
-            <ion-icon
-              :icon="bulbOutline"
-              aria-hidden="true"
-            />
-
-            <span>
-              <strong>Tip:</strong>
-              The app works best with 8–24 players. Each court supports four active players.
-              If there are more players than available court positions, the remaining players
-              will rotate through sit-out periods.
-            </span>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">
-              Features
-            </h2>
-
-            <ul class="about-list">
-              <li>Smart player rotation designed to reduce repeat partnerships</li>
-              <li>Varied opponents across rounds</li>
-              <li>Fair distribution of sit-out periods</li>
-              <li>Support for 2–12 courts and multiple rounds</li>
-              <li>Player substitutions during open rounds</li>
-              <li>Regeneration of remaining rounds when the roster changes</li>
-              <li>Optional player numbers for easier court organization</li>
-              <li>Camera-assisted player-name entry</li>
-            </ul>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">
-              Privacy
-            </h2>
-
-            <p class="about-text">
-              Pickleball Team Flow does not require an account. Player names and photos
-              used for name scanning are processed within the app and are not uploaded
-              to a Pickleball Team Flow server. Photos are used only to recognize player
-              names and are not stored by Pickleball Team Flow.
-            </p>
-
-            <router-link to="/privacy" class="about-link">
-              View Privacy Policy
-            </router-link>
-          </div>
-
-          <div class="about-block">
-            <h2 class="about-heading">
-              Support
-            </h2>
-
-            <p class="about-text">
-              Need help or have feedback? Visit our support page for assistance,
-              troubleshooting, and contact information.
-            </p>
-
-            <router-link to="/support" class="about-link">
-              Visit Support
-            </router-link>
-          </div>
-
-          <div class="about-block">
+        <ion-accordion-group v-model="expandedTopics" :multiple="true" :animated="false" aria-label="Help topics">
+          <ion-accordion v-for="topic in filteredTopics" :key="topic.id" :value="topic.id">
+            <ion-item slot="header" lines="none" class="help-topic-header">
+              <ion-label><h2>{{ topic.title }}</h2></ion-label>
+            </ion-item>
+            <div slot="content" class="help-topic-content">
+              <ol v-if="topic.steps.length" class="about-list">
+                <li v-for="step in topic.steps" :key="step">{{ step }}</li>
+              </ol>
+              <p v-for="note in topic.notes" :key="note" class="about-text">{{ note }}</p>
+              <template v-if="topic.id === 'about'">
+                          <div class="about-block">
             <h2 class="about-heading">
               Development Team
             </h2>
@@ -206,57 +69,59 @@
             </div>
           </div>
 
-          <div class="about-footer">
-            <small>Version {{ appVersion }}</small>
-            <small>© 2026 Pickleball Team Flow. All rights reserved.</small>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </section>
+
+              </template>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+        <nav class="help-links" aria-label="Support and privacy">
+          <router-link to="/support" class="about-link">Visit Support</router-link>
+          <router-link to="/privacy" class="about-link">Privacy Policy</router-link>
+        </nav>
+        <footer class="about-footer">
+          <small>Version {{ appVersion }}</small>
+          <small>© 2026 Pickleball Team Flow. All rights reserved.</small>
+        </footer>
+      </ion-card-content>
+    </ion-card>
   </div>
 </template>
 
 <script>
-import {
-  IonCard,
-  IonCardContent,
-  IonIcon
-} from '@ionic/vue';
-
-import {
-  bulbOutline,
-  logoLinkedin
-} from 'ionicons/icons';
-
+import { IonCard, IonCardContent, IonIcon, IonAccordion, IonAccordionGroup, IonItem, IonLabel, IonInput } from '@ionic/vue';
+import { logoLinkedin } from 'ionicons/icons';
+import { filterHelpTopics } from '../services/helpTopics.mjs';
 export default {
   name: 'About',
-
-  components: {
-    IonCard,
-    IonCardContent,
-    IonIcon
-  },
-
-  setup() {
-    return {
-      bulbOutline,
-      logoLinkedin
-    };
-  },
-
-  data() {
-    return {
-      appVersion: __APP_VERSION__
-    };
-  }
+  components: { IonCard, IonCardContent, IonIcon, IonAccordion, IonAccordionGroup, IonItem, IonLabel, IonInput },
+  setup() { return { logoLinkedin }; },
+  data() { return { appVersion: __APP_VERSION__, query: '', expandedTopics: [] }; },
+  computed: { filteredTopics() { return filterHelpTopics(this.query); } }
 };
 </script>
-
 <style scoped>
 .about-page {
   width: 100%;
   min-width: 0;
+  max-width: 48rem;
+  margin-inline: auto;
+  --ion-color-primary: #0d5132;
+  --ion-color-primary-rgb: 13, 81, 50;
+  --ion-color-primary-contrast: #fff;
 }
+
+.help-search { padding: 0; margin-bottom: 1rem; --background: #f5f7f6; --color: #26312c; --icon-color: #0d5132; --clear-button-color: #0d5132; --border-radius: .65rem; --box-shadow: none; }
+.help-search:focus-within { outline: 3px solid #0d5132; outline-offset: 2px; border-radius: .65rem; }
+.help-topic-header { --background: #e9f7ef; --color: #0d5132; --min-height: 3.5rem; --padding-start: 1rem; --inner-padding-end: 1rem; --background-hover: #0d5132; --background-focused: #0d5132; --background-activated: #0d5132; }
+.help-topic-header h2 { font-size: 1.05rem; font-weight: 600; line-height: 1.5; margin: 0; }
+.help-topic-header ion-label { white-space: normal; overflow-wrap: break-word; margin-block: .8rem; }
+.help-topic-header::part(native):focus-visible { outline: 3px solid #0d5132; outline-offset: -3px; }
+ion-accordion { margin-bottom: .65rem; border-radius: .65rem; border: 1px solid #dce5df; }
+.help-topic-content { padding: 1rem; overflow-wrap: break-word; }
+.help-topic-content .about-list { margin-bottom: .75rem; }
+.help-links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
+.help-links .about-link { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid #0d5132; border-radius: .5rem; color: #0d5132; text-decoration: underline; }
+.about-link:focus-visible, .about-linkedin:focus-visible { outline: 3px solid #0d5132; outline-offset: 2px; }
 
 .about-page *,
 .about-page *::before,
@@ -434,7 +299,10 @@ export default {
   display: inline-flex;
   align-items: center;
 
-  color: #0a66c2;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  color: #0d5132;
 }
 
 .about-linkedin ion-icon {
