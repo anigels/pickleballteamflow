@@ -82,8 +82,11 @@
               </div>
             </div>
 
-            <ion-button fill="outline" class="saved-library-button" @click="savedLibraryOpen = true">
+            <ion-button fill="outline" class="saved-library-button" @click="savedLibraryTab = 'players'; savedLibraryOpen = true">
               Saved Players &amp; Rosters
+            </ion-button>
+            <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="savedLibraryTab = 'save'; savedLibraryOpen = true">
+              Save roster…
             </ion-button>
 
             <div class="roster-input-wrapper">
@@ -764,6 +767,7 @@
     <SavedRostersModal
       v-if="savedLibraryOpen"
       :is-open="savedLibraryOpen"
+      :initial-tab="savedLibraryTab"
       :persistence="rosterPersistence"
       :names-text="namesText"
       :has-assignments="schedule.length > 0"
@@ -1176,6 +1180,7 @@ export default {
       rosterStorageStatus: status,
       rosterStorageWarningShown: false,
       savedLibraryOpen: false,
+      savedLibraryTab: 'players',
       schedule: [],
 
       // UI-only state.
