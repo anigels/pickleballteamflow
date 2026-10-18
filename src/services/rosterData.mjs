@@ -84,6 +84,13 @@ export function saveNamedRoster(data, { id, name, playerIds }, makeId = newId) {
   const next = copyData(data);
   const roster = { id: id ?? makeId(), name: typeof name === 'string' ? name.trim() : name, playerIds };
   const index = next.rosters.findIndex(r => r.id === roster.id);
+  if (id != null && index < 0) throw new Error('Saved roster no longer exists. Reopen the library and try again.');
+  const key = value => value.trim().normalize('NFKC').toLowerCase();
+  // Existing duplicate titles remain readable; an unchanged legacy title can still be saved.
+  const unchangedTitle = typeof roster.name === 'string' && index >= 0 && key(next.rosters[index].name) === key(roster.name);
+  if (typeof roster.name === 'string' && !unchangedTitle && next.rosters.some(r => r.id !== roster.id && key(r.name) === key(roster.name))) {
+    throw new Error('A roster with that name already exists. Choose a different name or edit the existing saved roster.');
+  }
   if (id == null && index >= 0) throw new TypeError('Duplicate roster ID');
   if (index < 0) next.rosters.push(roster);
   else next.rosters[index] = roster;
