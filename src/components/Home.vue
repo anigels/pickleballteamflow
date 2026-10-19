@@ -53,7 +53,7 @@
                 </div>
 
                 <div id="roster-instructions" class="roster-instruction">
-                  Enter one player per line.
+                  Enter one player per line, or load a saved roster.
                 </div>
               </div>
 
