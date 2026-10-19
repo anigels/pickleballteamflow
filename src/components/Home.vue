@@ -53,7 +53,7 @@
                 </div>
 
                 <div id="roster-instructions" class="roster-instruction">
-                  Enter one player per line.
+                  Enter one player per line, or load a saved roster.
                 </div>
               </div>
 
@@ -79,13 +79,13 @@
 
             <div class="saved-setup-actions" role="group" aria-label="Saved players and rosters">
               <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('players')">
-                <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />Saved Players
+                <span class="setup-action-content"><span class="setup-action-icon" aria-hidden="true"><ion-icon :icon="peopleOutline" /></span><span class="setup-action-label">Saved Players</span></span>
               </ion-button>
               <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('rosters')">
-                <ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Load Roster
+                <span class="setup-action-content"><span class="setup-action-icon" aria-hidden="true"><ion-icon :icon="folderOpenOutline" /></span><span class="setup-action-label">Load Roster</span></span>
               </ion-button>
               <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="openSavedLibrary('save')">
-                <ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Roster
+                <span class="setup-action-content"><span class="setup-action-icon" aria-hidden="true"><ion-icon :icon="saveOutline" /></span><span class="setup-action-label">Save Roster</span></span>
               </ion-button>
             </div>
             <router-link class="saved-roster-help" :to="{ path: '/about', query: { topic: 'saved-rosters' } }" aria-label="Help with saved players and rosters">
@@ -2751,10 +2751,30 @@ export default {
 .player-count-ready {
   color: #198754;
 }
-.saved-setup-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .5rem; }
-.saved-setup-actions ion-button { font-size: 1rem; margin: 0; min-height: 48px; height: auto; min-width: 0; white-space: normal; }
-.saved-setup-actions ion-button::part(native) { padding: .75rem; white-space: normal; overflow-wrap: break-word; }
-.saved-setup-actions ion-icon { flex-shrink: 0; }
+.saved-setup-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .75rem; }
+.saved-setup-actions ion-button {
+  --background: #fff;
+  --border-color: #d5e4da;
+  --border-radius: .875rem;
+  --border-width: 1px;
+  --box-shadow: 0 2px 5px rgb(13 81 50 / 4%);
+  --background-hover: #f0f7f2;
+  --background-focused: #e5f3e9;
+  --background-activated: #e5f3e9;
+  font-size: 1rem; font-weight: 600; letter-spacing: normal; text-transform: none;
+  margin: 0; min-height: 80px; height: auto; min-width: 0; white-space: normal;
+}
+.saved-setup-actions ion-button::part(native) { padding: 1rem; white-space: normal; overflow-wrap: break-word; }
+.setup-action-content { display: flex; align-items: center; gap: .75rem; width: 100%; min-width: 0; text-align: left; }
+.setup-action-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex: 0 0 3rem; border-radius: .875rem; background: #ddedc4; color: var(--ion-color-primary); }
+.setup-action-icon ion-icon { width: 1.625rem; height: 1.625rem; }
+.setup-action-label { min-width: 0; line-height: 1.4; }
+.saved-setup-actions ion-button::part(native):focus-visible { outline: 3px solid var(--ion-color-primary); outline-offset: -4px; }
+@media (max-width: 40rem) {
+  .saved-setup-actions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr)); gap: .5rem; }
+  .saved-setup-actions ion-button::part(native) { padding: .75rem .375rem; }
+  .setup-action-content { flex-direction: column; text-align: center; gap: .625rem; }
+}
 .saved-roster-help { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: .5rem .25rem; color: #0d5132; text-decoration: underline; margin-block: .25rem .5rem; }
 .saved-roster-help:focus-visible { outline: 3px solid #0d5132; outline-offset: 2px; }
 .roster-input-wrapper {
