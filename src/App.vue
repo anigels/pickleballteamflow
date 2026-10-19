@@ -65,10 +65,9 @@
 
       <!-- =====================================================
            BOTTOM NAV
-           Native phone apps only
+           Shared phone, tablet, and web destinations
       ====================================================== -->
       <nav
-        v-if="useBottomNav"
         class="main-tab-bar"
         aria-label="Main navigation"
       >
@@ -91,8 +90,12 @@
           />
 
           <span class="tab-label">
-            Home
+            Play
           </span>
+        </button>
+
+        <button type="button" class="tab-button" :class="{ active: $route.path === '/players' }" :aria-current="$route.path === '/players' ? 'page' : undefined" @click="goTo('/players')">
+          <ion-icon :icon="peopleOutline" aria-hidden="true" /><span class="tab-label">Players</span>
         </button>
 
         <button
@@ -110,7 +113,7 @@
           @click="goTo('/about')"
         >
           <ion-icon
-            :icon="informationCircleOutline"
+            :icon="bookOutline"
             aria-hidden="true"
           />
 
@@ -170,11 +173,14 @@
                 />
 
                 <ion-label>
-                  Home
+                  Play
                 </ion-label>
               </ion-item>
             </router-link>
 
+            <router-link to="/players" class="menu-link">
+              <ion-item button detail="false"><ion-icon :icon="peopleOutline" slot="start" /><ion-label>Players</ion-label></ion-item>
+            </router-link>
             <router-link
               to="/about"
               class="menu-link"
@@ -184,7 +190,7 @@
                 detail="false"
               >
                 <ion-icon
-                  :icon="informationCircleOutline"
+                  :icon="bookOutline"
                   slot="start"
                 />
 
@@ -228,6 +234,7 @@
 </template>
 
 <script>
+import { createRosterNavigation } from './services/rosterNavigation.mjs';
 import { startUpdateChecks } from './services/updateService';
 import './services/overlayLayout.css';
 import { trackModalViewport } from './services/modalViewport.mjs';
@@ -250,8 +257,9 @@ import {
 import { App } from '@capacitor/app';
 
 import {
+  peopleOutline,
   homeOutline,
-  informationCircleOutline,
+  bookOutline,
   menuOutline,
   settingsOutline
 } from 'ionicons/icons';
@@ -262,6 +270,7 @@ import {
 
 export default {
   name: 'App',
+  provide() { return { rosterNavigation: this.rosterNavigation }; },
 
   async mounted() {
     this.stopModalViewport = trackModalViewport();
@@ -301,8 +310,10 @@ export default {
 
   setup() {
     return {
+      rosterNavigation: createRosterNavigation(),
+      peopleOutline,
       homeOutline,
-      informationCircleOutline,
+      bookOutline,
       menuOutline,
       settingsOutline
     };
@@ -477,8 +488,7 @@ ion-button::part(native) {
 }
 
 /*
- * Reserve space for the fixed bottom nav
- * only when this is a native phone.
+ * Native phones have no top toolbar; retain their safe-area inset.
  */
 .app-shell.native-phone
 .page-container {
@@ -489,7 +499,7 @@ ion-button::part(native) {
     )
     1.25rem
     calc(
-      85px +
+      2rem +
       env(safe-area-inset-bottom)
     );
 }
@@ -500,7 +510,8 @@ ion-button::part(native) {
 ========================================================= */
 
 .main-tab-bar {
-  position: fixed;
+  position: relative;
+  flex: 0 0 auto;
 
   bottom: 0;
   left: 0;
@@ -570,6 +581,8 @@ ion-button::part(native) {
 }
 
 .tab-button.active {
+  background: #e9f7ef;
+  box-shadow: inset 0 3px #0e4b2e;
   color: #0e4b2e;
 }
 
@@ -668,7 +681,7 @@ ion-item ion-icon {
       )
       0.75rem
       calc(
-        85px +
+        2rem +
         env(safe-area-inset-bottom)
       );
   }
@@ -686,6 +699,8 @@ ion-item ion-icon {
 }
 
 .main-tab-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.5rem), 1fr));
   height: auto;
 }
 

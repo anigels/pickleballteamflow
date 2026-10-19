@@ -14,6 +14,7 @@ import '@ionic/vue/css/flex-utils.css'
 import '@ionic/vue/css/display.css'
 
 import App from './App.vue'
+import Players from './components/Players.vue'
 import Home from './components/Home.vue'
 import About from './components/About.vue'
 import Settings from './components/Settings.vue'
@@ -23,6 +24,7 @@ import Support from './components/Support.vue'
 // Routes
 const routes = [
   { path: '/', component: Home },
+  { path: '/players', component: Players },
   { path: '/about', component: About },
   { path: '/settings', component: Settings },
   { path: '/privacy', component: Privacy },
