@@ -61,9 +61,8 @@
                 
                 <ion-button
                   v-if="players.length"
-                  fill="clear"
-                  size="small"
-                  color="medium"
+                  fill="outline"
+                  color="danger"
                   class="clear-roster-button"
                   aria-label="Clear today’s roster"
                   @click="clearRoster()"
@@ -269,9 +268,9 @@
             <ion-button
               expand="block"
               fill="outline"
-              color="medium"
+              color="danger"
               class="secondary-action"
-              @click="clearAll()"
+              @click="confirmClearAssignments()"
             >
               <ion-icon
                 :icon="trashOutline"
@@ -778,13 +777,11 @@
     ========================================================== -->
     <ion-modal
       :is-open="subModal.show"
-      class="substitution-modal"
+      class="app-modal substitution-modal"
       aria-labelledby="swap-player-title"
       :backdrop-dismiss="true"
       @didDismiss="closeSubModal"
     >
-      <ion-content class="substitution-content">
-        <div class="sub-modal-shell">
           <div class="sub-modal-header">
             <div class="sub-modal-heading-copy">
               <div class="sub-modal-eyebrow">
@@ -810,6 +807,8 @@
             </ion-button>
           </div>
 
+      <ion-content class="substitution-content">
+        <div class="sub-modal-shell">
           <div class="sub-current-player">
             <div class="small text-secondary mb-1">
               Selected player
@@ -893,7 +892,7 @@
     <ion-modal
       v-if="isMobile"
       :is-open="settingsModal.show"
-      class="settings-modal"
+      class="app-modal settings-modal"
       :backdrop-dismiss="true"
       @didDismiss="closeSettingsModal"
     >
@@ -1003,7 +1002,7 @@
     ========================================================== -->
     <ion-modal
       :is-open="rateModal.show"
-      class="rate-modal"
+      class="app-modal rate-modal"
       :backdrop-dismiss="true"
       @didDismiss="closeRateModal"
     >
@@ -1401,7 +1400,12 @@ export default {
       const nextRound = this.sortedSchedule.find(item =>
         item.index > round.index && !item.closed
       );
-      const header = this.$el.querySelector('#round-header-' + (nextRound || round).index);
+      await this.focusRound(nextRound || round);
+    },
+
+    async focusRound(round) {
+      if (!round) return;
+      const header = this.$el.querySelector('#round-header-' + round.index);
       if (!header?.isConnected) return;
       const content = header.closest('ion-content');
       const scroll = await content?.getScrollElement?.();
@@ -2076,6 +2080,17 @@ export default {
           ' rounds of court assignments!',
         'alert alert-success'
       );
+      this.$nextTick(() => this.focusRound(rounds[0]));
+    },
+
+    async confirmClearAssignments() {
+      const alert = await alertController.create({
+        header: 'Clear all assignments?', cssClass: 'saved-roster-overlay',
+        message: "Removes all open and completed rounds. Today's names and your saved library stay unchanged.",
+        buttons: [{ text: 'Cancel', role: 'cancel' }, { text: 'Clear assignments', role: 'confirm', cssClass: 'roster-destructive-action' }]
+      });
+      await alert.present();
+      if ((await alert.onDidDismiss()).role === 'confirm') this.clearAll();
     },
 
     async clearRoster() {
@@ -3792,7 +3807,9 @@ export default {
 
   min-width: 0;
 
-  padding-bottom: 1rem;
+  flex-shrink: 0;
+  padding: max(1rem, env(safe-area-inset-top)) 1.25rem 1rem;
+  background: white;
 
   border-bottom:
     1px solid #e9ecef;

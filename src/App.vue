@@ -229,6 +229,8 @@
 
 <script>
 import { startUpdateChecks } from './services/updateService';
+import './services/overlayLayout.css';
+import { trackModalViewport } from './services/modalViewport.mjs';
 import {
   IonAlert,
   IonApp,
@@ -262,6 +264,7 @@ export default {
   name: 'App',
 
   async mounted() {
+    this.stopModalViewport = trackModalViewport();
     this.stopUpdateChecks = startUpdateChecks();
 
     if (Capacitor.isNativePlatform()) {
@@ -276,6 +279,7 @@ export default {
   },
 
   beforeUnmount() {
+    this.stopModalViewport?.();
     this.stopUpdateChecks?.();
     this._backButtonListener?.remove();
   },
