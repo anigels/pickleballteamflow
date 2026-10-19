@@ -77,15 +77,20 @@
               </div>
             </div>
 
-            <ion-button fill="outline" class="saved-library-button" @click="savedLibraryTab = 'players'; savedLibraryOpen = true">
-              <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />
-              Saved Players &amp; Rosters
-            </ion-button>
-            <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="savedLibraryTab = 'save'; savedLibraryOpen = true">
-              Save today’s roster…
-            </ion-button>
-
-            <p class="roster-instruction">Edit today’s names below. Saved rosters stay unchanged.</p>
+            <div class="saved-setup-actions" role="group" aria-label="Saved players and rosters">
+              <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('players')">
+                <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />Saved Players
+              </ion-button>
+              <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('rosters')">
+                <ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Load Roster
+              </ion-button>
+              <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="openSavedLibrary('save')">
+                <ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Roster
+              </ion-button>
+            </div>
+            <router-link class="saved-roster-help" :to="{ path: '/about', query: { topic: 'saved-rosters' } }" aria-label="Help with saved players and rosters">
+              <ion-icon :icon="informationCircleOutline" aria-hidden="true" />About saved rosters
+            </router-link>
             <div class="roster-input-wrapper">
               <ion-textarea
                 ref="rosterTextarea"
@@ -1094,6 +1099,8 @@ import {
   informationCircleOutline,
   listOutline,
   peopleOutline,
+  folderOpenOutline,
+  saveOutline,
   playOutline,
   refreshOutline,
   settingsOutline,
@@ -1156,6 +1163,8 @@ export default {
       informationCircleOutline,
       listOutline,
       peopleOutline,
+      folderOpenOutline,
+      saveOutline,
       playOutline,
       refreshOutline,
       settingsOutline,
@@ -1355,6 +1364,10 @@ export default {
   },
 
   methods: {
+    openSavedLibrary(tab) {
+      this.savedLibraryTab = tab;
+      this.savedLibraryOpen = true;
+    },
     applySavedRoster(selection) {
       try {
         this.namesText = prepareRosterSelection({
@@ -2738,6 +2751,12 @@ export default {
 .player-count-ready {
   color: #198754;
 }
+.saved-setup-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .5rem; }
+.saved-setup-actions ion-button { font-size: 1rem; margin: 0; min-height: 48px; height: auto; min-width: 0; white-space: normal; }
+.saved-setup-actions ion-button::part(native) { padding: .75rem; white-space: normal; overflow-wrap: break-word; }
+.saved-setup-actions ion-icon { flex-shrink: 0; }
+.saved-roster-help { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: .5rem .25rem; color: #0d5132; text-decoration: underline; margin-block: .25rem .5rem; }
+.saved-roster-help:focus-visible { outline: 3px solid #0d5132; outline-offset: 2px; }
 .roster-input-wrapper {
   position: relative;
   margin-top: 0.75rem;

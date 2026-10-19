@@ -89,7 +89,7 @@
           <label v-if="data.rosters.length" for="saved-roster-search">Search saved rosters</label>
           <input v-if="data.rosters.length" id="saved-roster-search" v-model="rosterSearch" type="search" autocomplete="off">
           <p v-if="data.rosters.length && !filteredRosters.length">No saved rosters match your search.</p>
-          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or use Save today’s roster… in Game Setup.</p>
+          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or use Save Roster in Game Setup.</p>
           <ul class="library-list">
             <li v-for="roster in filteredRosters" :key="roster.id" class="library-panel">
               <h3>{{ roster.name }}</h3>

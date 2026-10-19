@@ -95,3 +95,15 @@ test('completion still positions the next open round with current-round fallback
   await api.completeRoundAndFocus.call(state,rounds[2]);
   assert.equal(focused,rounds[2]);
 });
+
+test('setup actions open each existing library workflow without changing a session', () => {
+  const api = methods('Home.vue');
+  for (const tab of ['players','rosters','save']) {
+    const state = {savedLibraryOpen:false,savedLibraryTab:'players',namesText:'Alex',schedule:[{closed:true}]};
+    api.openSavedLibrary.call(state,tab);
+    assert.equal(state.savedLibraryTab,tab);
+    assert.equal(state.savedLibraryOpen,true);
+    assert.equal(state.namesText,'Alex');
+    assert.equal(state.schedule[0].closed,true);
+  }
+});
