@@ -54,6 +54,25 @@ export function createRosterPersistence(getStorage = () => globalThis.localStora
   return {
     snapshot,
     save,
+    // Library editors commit only after durable storage succeeds. Existing draft
+    // writes keep their memory fallback through save/saveWorkingRoster above.
+    saveAtomic(next) {
+      if (!isRosterData(next)) return { ...snapshot(), status: 'invalid' };
+      if (blocked) return snapshot();
+      try {
+        if (storage.getItem(ROSTER_STORAGE_KEY) !== lastRaw) {
+          blocked = true;
+          status = 'conflict';
+          return snapshot();
+        }
+        const raw = JSON.stringify(next);
+        if (raw !== lastRaw) storage.setItem(ROSTER_STORAGE_KEY, raw);
+        lastRaw = raw;
+        data = clone(next);
+        status = 'ready';
+      } catch { status = 'unavailable'; }
+      return snapshot();
+    },
     saveWorkingRoster(workingRoster) {
       return save({ ...data, workingRoster });
     }

@@ -8,17 +8,16 @@
     <component :is="embedded ? 'div' : 'ion-content'">
       <div class="library-shell" :class="{ 'library-toast-visible': toastVisible }">
 
-        <details v-if="tab !== 'save'" class="library-context-help">
+        <details v-if="tab !== 'save' && !editorOpen && !addingPlayers" class="library-context-help">
           <summary>About saved rosters</summary>
-          <p class="library-help">Keep a group for another day. Select players to create a roster, or load one from Rosters. Edits to today's names do not change saved groups. Find full instructions in Help.</p>
+          <p class="library-help">Saved rosters are reusable groups. Changes to today’s players won’t change a saved roster unless you save those changes.</p>
         </details>
         <p v-if="hasAssignments && tab !== 'save'" id="library-session-note" class="library-notice">
           To add players to today's roster or load a roster, first use Clear Assignments in Game Setup.
         </p>
-        <ion-segment v-if="(embedded || tab !== 'save') && !editingRosterId" v-model="tab" aria-label="Saved library">
+        <ion-segment v-if="(embedded || tab !== 'save') && !editorOpen && !addingPlayers && !selectingForPlay" v-model="tab" aria-label="Saved library">
+          <ion-segment-button value="rosters"><ion-label>Saved Rosters</ion-label></ion-segment-button>
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
-          <ion-segment-button value="rosters"><ion-label>Rosters</ion-label></ion-segment-button>
-          <ion-segment-button v-if="embedded" value="save"><ion-label>Save Today’s Roster</ion-label></ion-segment-button>
 
         </ion-segment>
 
@@ -31,44 +30,56 @@
           </div>
         </section>
 
-        <section v-if="tab === 'players'" aria-label="Saved players">
-          <form class="library-form" @submit.prevent="addPlayer">
-            <label for="library-new-player">Player name</label>
-            <input id="library-new-player" v-model="newPlayerName" autocomplete="off" placeholder="e.g. Marco R">
-            <ion-button type="submit" :disabled="!newPlayerName.trim()">Add player</ion-button>
-          </form>
-          <div class="library-panel">
-            <h3 id="roster-selection-title" tabindex="-1">{{ editingRosterId ? 'Editing saved roster: ' + rosterName : 'Use selected players' }}</h3>
-            <p class="library-help">Select players below. Unchecking keeps them in Saved Players.</p>
-            <div class="library-actions">
+        <div v-if="embedded && !editorOpen && !addingPlayers && !selectingForPlay" class="library-actions">
+          <ion-button v-if="tab !== 'save'" fill="outline" @click="tab = 'save'; saveComplete = false"><ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Today's Roster</ion-button>
+          <ion-button v-else fill="outline" @click="tab = 'rosters'"><ion-icon :icon="arrowBackOutline" slot="start" aria-hidden="true" />Back to Saved Rosters</ion-button>
+        </div>
 
-              <ion-button fill="outline" :disabled="!filteredPlayers.some(player => !selectedIds.includes(player.id))" @click="selectAllPlayers">{{ search.trim() ? 'Select all results' : 'Select all players' }}</ion-button>
-              <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear selection</ion-button>
+        <section v-if="addingPlayers" class="library-panel" aria-labelledby="add-players-title">
+          <h3 id="add-players-title" tabindex="-1">Add Players</h3>
+          <form class="library-form" @submit.prevent="addPlayers">
+            <ion-textarea v-model="entryText" label="Player names — one per line" label-placement="stacked" fill="outline" :auto-grow="true" :rows="4" placeholder="Andrea&#10;Marco R" />
+            <p aria-live="polite">{{ entryReview.count }} entered · {{ entryReview.accepted.length }} new · {{ entryReview.skipped.length }} skipped</p>
+            <p v-if="entryReview.skipped.length" class="library-help">Already saved or repeated: {{ entryReview.skipped.join(', ') }}. Use distinct names for different people.</p>
+            <p v-if="editorOpen" class="library-help">New players are saved when you save this roster.</p>
+            <div class="library-actions">
+              <ion-button type="submit" :disabled="!entryReview.accepted.length"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />{{ editorOpen ? 'Add to Roster' : 'Save Players' }}</ion-button>
+              <ion-button fill="outline" @click="closePlayerEntry">Cancel</ion-button>
             </div>
-            <form class="library-form" @submit.prevent="saveRoster">
-              <label for="library-roster-name">Roster name</label>
-              <input id="library-roster-name" v-model="rosterName" autocomplete="off" placeholder="e.g. Tuesday Group">
-              <div class="library-actions">
-                <ion-button type="submit" :disabled="!rosterName.trim() || !selectedIds.length">{{ editingRosterId ? 'Save roster changes' : 'Create saved roster' }}</ion-button>
-                <ion-button v-if="editingRosterId" fill="outline" @click="cancelRosterEdit(); tab = 'rosters'">Cancel</ion-button>
-              </div>
-            </form>
+          </form>
+        </section>
+
+        <section v-if="(tab === 'players' || editorOpen) && !addingPlayers" :aria-label="editorOpen ? 'Roster editor' : 'Saved players'">
+          <template v-if="editorOpen">
+            <h3 id="roster-selection-title" tabindex="-1">{{ editingRosterId ? 'Edit Roster' : 'Create Roster' }}</h3>
+            <ion-input v-model="rosterName" label="Roster Name" label-placement="stacked" fill="outline" autocomplete="off" placeholder="e.g. Tuesday Morning" />
+          </template>
+          <div class="library-actions">
+            <ion-button @click="openPlayerEntry"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />Add Players</ion-button>
+            <ion-button v-if="!editorOpen && !selectingForPlay && data.players.length" fill="outline" @click="selectingForPlay = true; selectedIds = []">Select for Play</ion-button>
+            <ion-button v-if="selectingForPlay" fill="outline" @click="selectingForPlay = false; selectedIds = []">Cancel Selection</ion-button>
           </div>
-          <label for="library-search">Search players</label>
-          <input id="library-search" v-model="search" type="search" autocomplete="off">
-          <p class="library-help">{{ data.players.length }} saved {{ data.players.length === 1 ? 'player' : 'players' }} · {{ selectedIds.length }} selected</p>
-          <p v-if="!data.players.length">Add your first player above, or type today's names in Game Setup.</p>
-          <p v-else-if="!filteredPlayers.length">No players match your search.</p>
+          <div v-if="!availablePlayers.length" class="library-panel">
+            <h3>Let's add your players first!</h3>
+            <p>Save the people you regularly play with, then choose who belongs in this roster.</p>
+          </div>
+          <ion-searchbar v-if="availablePlayers.length" v-model="search" aria-label="Search players" placeholder="Search players" />
+          <div v-if="editorOpen || selectingForPlay" class="library-actions">
+            <ion-button fill="outline" :disabled="!filteredPlayers.some(player => !selectedIds.includes(player.id))" @click="selectAllPlayers">{{ search.trim() ? 'Select All Results' : 'Select All' }}</ion-button>
+            <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear Selection</ion-button>
+          </div>
+          <p class="library-help" aria-live="polite">{{ availablePlayers.length }} {{ availablePlayers.length === 1 ? 'player' : 'players' }}<template v-if="editorOpen || selectingForPlay"> · {{ selectedIds.length }} selected</template></p>
+          <p v-if="availablePlayers.length && !filteredPlayers.length">No players match your search.</p>
           <ul class="library-list">
             <li v-for="player in filteredPlayers" :key="player.id" class="library-panel">
               <div class="library-player-row">
-                <label class="library-player-label">
-                  <input v-model="selectedIds" type="checkbox" :value="player.id">
+                <component :is="editorOpen || selectingForPlay ? 'label' : 'div'" class="library-player-label" :class="{ 'player-display-only': !editorOpen && !selectingForPlay }">
+                  <input v-if="editorOpen || selectingForPlay" v-model="selectedIds" type="checkbox" :value="player.id">
                   <img class="library-player-badge" src="../assets/saved-player-pickleball.png" width="38" height="38" alt="" aria-hidden="true">
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
-                </label>
-                <div class="library-actions">
-                  <ion-button class="player-icon-action" fill="outline" :aria-label="`Rename ${player.displayName}`" title="Edit player name" @click="startRename(player)"><ion-icon slot="icon-only" :icon="pencilOutline" aria-hidden="true" /></ion-button>
+                </component>
+                <div v-if="!editorOpen && !selectingForPlay" class="library-actions">
+                  <ion-button class="player-icon-action" fill="outline" :aria-label="`Edit ${player.displayName}`" title="Edit player name" @click="startRename(player)"><ion-icon slot="icon-only" :icon="pencilOutline" aria-hidden="true" /></ion-button>
                   <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
                 </div>
               </div>
@@ -86,20 +97,20 @@
 
         </section>
 
-        <section v-else-if="tab === 'rosters'" aria-label="Saved rosters">
-          <label v-if="data.rosters.length" for="saved-roster-search">Search saved rosters</label>
-          <input v-if="data.rosters.length" id="saved-roster-search" v-model="rosterSearch" type="search" autocomplete="off">
+        <section v-else-if="tab === 'rosters' && !addingPlayers" aria-label="Saved rosters">
+          <ion-button @click="createRoster"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />Create Roster</ion-button>
+          <ion-searchbar v-if="data.rosters.length" v-model="rosterSearch" aria-label="Search saved rosters" placeholder="Search saved rosters" />
           <p v-if="data.rosters.length && !filteredRosters.length">No saved rosters match your search.</p>
-          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or choose Save Today’s Roster here.</p>
+          <p v-if="!data.rosters.length" class="library-help">No saved rosters yet. Create your first group, or add regular players in Players.</p>
           <ul class="library-list">
             <li v-for="roster in filteredRosters" :key="roster.id" class="library-panel">
               <h3>{{ roster.name }}</h3>
               <p class="library-help">{{ roster.playerIds.length }} {{ roster.playerIds.length === 1 ? 'player' : 'players' }}</p>
               <p>{{ rosterNames(roster) }}</p>
               <div class="library-actions">
-                <ion-button :disabled="hasAssignments || !roster.playerIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" :aria-label="`Load ${roster.name}`" @click="requestApply(roster.playerIds, 'replace')">Load roster</ion-button>
-                <ion-button fill="outline" :aria-label="`Edit ${roster.name}`" @click="editRoster(roster)">Edit</ion-button>
-                <ion-button fill="outline" color="danger" :aria-label="`Delete ${roster.name}`" @click="requestDelete('roster', roster)">Delete</ion-button>
+                <ion-button :disabled="hasAssignments || !roster.playerIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" :aria-label="`Use ${roster.name} for play`" @click="requestApply(roster.playerIds, 'replace')"><ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Use for Play</ion-button>
+                <ion-button class="player-icon-action" fill="outline" :aria-label="`Edit ${roster.name} roster`" title="Edit roster" @click="editRoster(roster)"><ion-icon :icon="pencilOutline" slot="icon-only" aria-hidden="true" /></ion-button>
+                <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${roster.name} roster`" title="Delete roster" @click="requestDelete('roster', roster)"><ion-icon :icon="trashOutline" slot="icon-only" aria-hidden="true" /></ion-button>
               </div>
             </li>
           </ul>
@@ -109,7 +120,7 @@
           <h3>No players in today's roster yet</h3><p>Enter names or scan a photo on Play, then come back to save them for next time.</p>
           <ion-button fill="outline" @click="$router.push('/')">Go to Play</ion-button>
         </section>
-        <section v-else-if="!saveComplete" aria-label="Save current roster" class="library-panel">
+        <section v-else-if="tab === 'save' && !saveComplete && !addingPlayers" aria-label="Save current roster" class="library-panel">
 
           <p class="library-help">Keep these players for another day. Today's game stays unchanged.</p>
           <p>{{ importReview.entries.length }} {{ importReview.entries.length === 1 ? 'player' : 'players' }}: {{ importReview.newCount }} new, {{ importReview.existingCount }} already saved.</p>
@@ -149,32 +160,36 @@
 
       </div>
     </component>
-    <footer v-if="tab === 'players' && selectedIds.length && !pendingApply" class="library-selection-footer">
-      <ion-button v-if="!editingRosterId" expand="block" :disabled="hasAssignments" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">
+    <footer v-if="(editorOpen || selectingForPlay) && !addingPlayers && !pendingApply" class="library-selection-footer">
+      <ion-button v-if="selectingForPlay" expand="block" :disabled="hasAssignments" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">
         Add {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'player' : 'players' }} to today's roster
       </ion-button>
-      <ion-button v-else expand="block" :disabled="!rosterName.trim()" @click="saveRoster">Save roster changes · {{ selectedIds.length }} selected</ion-button>
+      <div v-else class="library-actions">
+        <ion-button :disabled="!rosterName.trim() || !selectedIds.length || savingRoster" @click="saveRoster"><ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Roster · {{ selectedIds.length }} selected</ion-button>
+        <ion-button fill="outline" :disabled="savingRoster" @click="cancelRosterEdit(); tab = 'rosters'">Cancel</ion-button>
+      </div>
     </footer>
   </component>
 </template>
 
 <script>
-import { IonButton, IonIcon, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
-import { pencilOutline, trashOutline } from 'ionicons/icons';
-import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
+import { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
+import { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline, arrowBackOutline } from 'ionicons/icons';
+import { addSavedPlayer, renameSavedPlayer, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
 import { createRosterNotifier } from '../services/rosterNotifications.mjs';
 import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsing.mjs';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
+import { stagePlayers, reviewPlayerEntry, prepareRosterEditorSave } from '../services/rosterEditor.mjs';
 import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
 
 export default {
   name: 'SavedRostersModal',
-  components: { IonButton, IonIcon, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
-  setup() { return { pencilOutline, trashOutline }; },
+  components: { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
+  setup() { return { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline, arrowBackOutline }; },
   props: {
     isOpen: Boolean,
     embedded: Boolean,
-    initialTab: { type: String, default: 'players' },
+    initialTab: { type: String, default: 'rosters' },
     hasAssignments: Boolean,
     namesText: { type: String, default: '' },
     persistence: { type: Object, required: true }
@@ -185,16 +200,18 @@ export default {
     return {
       data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, toastVisible: false, notifier: null, deletionPending: false,
       saveComplete: false, rosterSearch: '', importMode: 'players', importRosterName: '', importRosterId: '',
-      newPlayerName: '', search: '', selectedIds: [], editingPlayerId: null, editedName: '',
+      editorOpen: false, stagedPlayers: [], addingPlayers: false, entryText: '', selectingForPlay: false, savingRoster: false, search: '', selectedIds: [], editingPlayerId: null, editedName: '',
       editingRosterId: null, rosterName: '', pendingApply: null
     };
   },
   computed: {
+    availablePlayers() { return [...this.data.players, ...this.stagedPlayers]; },
+    entryReview() { return reviewPlayerEntry(this.availablePlayers, this.entryText); },
     importReview() { return reviewRosterImport(this.data, this.namesText); },
     importTarget() { return this.data.rosters.find(roster => roster.id === this.importRosterId); },
     filteredRosters() { return searchSavedRosters(this.data.rosters, this.rosterSearch); },
     filteredPlayers() {
-      return browseSavedPlayers(this.data.players, this.search);
+      return browseSavedPlayers(this.availablePlayers, this.search);
     }
   },
   created() { this.notifier = createRosterNotifier(toastController, visible => { this.toastVisible = visible; }); },
@@ -257,8 +274,34 @@ export default {
         return false;
       }
     },
-    addPlayer() {
-      if (this.commit(data => addSavedPlayer(data, this.newPlayerName), 'Player added.')) this.newPlayerName = '';
+    openPlayerEntry() { this.entryText = ''; this.addingPlayers = true; this.$nextTick(() => document.getElementById('add-players-title')?.focus()); },
+    closePlayerEntry() { this.entryText = ''; this.addingPlayers = false; },
+    addPlayers() {
+      try {
+        const review = stagePlayers(this.availablePlayers, this.entryText);
+        if (!review.additions.length) { this.notify('No new names to add. Review duplicate names.', true); return; }
+        if (this.editorOpen) {
+          this.stagedPlayers.push(...review.additions);
+          this.selectedIds = [...this.selectedIds, ...review.additions.map(p => p.id)];
+          this.search = '';
+        } else {
+          let next = this.persistence.snapshot().data;
+          for (const player of review.additions) {
+            if (!reviewPlayerEntry(next.players, player.displayName).accepted.length) throw new Error('The library changed. Review the names and try again.');
+            next = addSavedPlayer(next, player.displayName, () => player.id);
+          }
+          const result = this.persistence.saveAtomic(next);
+          this.storageStatus = result.status;
+          if (result.status !== 'ready') { this.notify('Players could not be saved. Your entries are still here. Please try again.', true); return; }
+          this.data = result.data;
+        }
+        this.notify(`${review.additions.length} ${this.editorOpen ? 'added to this draft' : 'saved' }.${review.skipped.length ? ' Skipped duplicates: ' + review.skipped.join(', ') + '.' : ''}`);
+        this.closePlayerEntry();
+      } catch (error) { this.notify(error.message, true); }
+    },
+    createRoster() {
+      this.cancelRosterEdit(); this.editorOpen = true; this.tab = 'rosters'; this.search = '';
+      this.$nextTick(() => document.getElementById('roster-selection-title')?.focus());
     },
     duplicateName(player) {
       return this.data.players.filter(p => p.displayName.trim().toLowerCase() === player.displayName.trim().toLowerCase()).length > 1;
@@ -273,24 +316,35 @@ export default {
     },
     async saveRoster() {
       if (this.editingRosterId && !(await this.confirmRosterUpdate(this.rosterName))) return;
-      if (this.commit(data => saveNamedRoster(data, {
-        id: this.editingRosterId ?? undefined, name: this.rosterName, playerIds: [...this.selectedIds]
-      }), 'Roster saved.')) {
+      if (this.savingRoster) return;
+      this.savingRoster = true;
+      try {
+        const next = prepareRosterEditorSave(this.persistence.snapshot().data, {
+          id: this.editingRosterId, name: this.rosterName, playerIds: this.selectedIds, stagedPlayers: this.stagedPlayers
+        });
+        const result = this.persistence.saveAtomic(next);
+        this.storageStatus = result.status;
+        if (result.status !== 'ready') { this.notify('Roster could not be saved. Your draft is still here. Please try again.', true); return; }
+        this.data = result.data;
         this.cancelRosterEdit();
-        this.tab = 'rosters';
-      }
+        this.tab = 'rosters'; this.rosterSearch = '';
+        this.notify('Roster saved.');
+      } catch (error) { this.notify(error.message, true); }
+      finally { this.savingRoster = false; }
     },
     editRoster(roster) {
-      this.editingRosterId = roster.id;
-      this.rosterName = roster.name;
-      this.selectedIds = [...roster.playerIds];
-      this.search = '';
-      this.tab = 'players';
+      this.cancelRosterEdit();
+      this.editorOpen = true; this.editingRosterId = roster.id; this.rosterName = roster.name;
+      this.selectedIds = [...roster.playerIds]; this.search = ''; this.tab = 'rosters';
       this.$nextTick(() => document.getElementById('roster-selection-title')?.focus());
     },
-    cancelRosterEdit() { this.editingRosterId = null; this.rosterName = ''; this.selectedIds = []; },
+    cancelRosterEdit() {
+      this.editingRosterId = null; this.rosterName = ''; this.selectedIds = [];
+      this.stagedPlayers = []; this.editorOpen = false; this.addingPlayers = false; this.entryText = ''; this.selectingForPlay = false;
+    },
     rosterNames(roster) {
-      return roster.playerIds.map(id => this.data.players.find(p => p.id === id)?.displayName).join(', ');
+      const names = roster.playerIds.slice(0, 4).map(id => this.data.players.find(p => p.id === id)?.displayName).join(', ');
+      return names + (roster.playerIds.length > 4 ? ` + ${roster.playerIds.length - 4} more` : '');
     },
     async requestDelete(kind, item) {
       if (this.deletionPending) return;
@@ -348,11 +402,14 @@ export default {
 .embedded-library .library-panel { padding: clamp(.5rem, 3vw, 1rem); }
 .embedded-library .library-actions { min-width: 0; max-width: 100%; }
 .embedded-library .library-player-label { gap: clamp(.25rem, 2vw, .75rem); padding: clamp(.25rem, 2vw, .65rem); }
+.library-player-label.player-display-only { cursor: default; border-color: transparent; }
 .embedded-library .library-player-label span { overflow-wrap: anywhere; }
 .embedded-library .library-selection-footer { border-radius: 0 0 1rem 1rem; }
 .library-shell { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); color: #26312c; }
 .library-toast-visible { padding-bottom: calc(40vh + env(safe-area-inset-bottom)); }
 .library-header, .library-player-row, .library-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.library-player-row > .library-actions { gap: .5rem; }
+.library-player-row .library-player-label { flex-basis: 10rem; padding-inline: .25rem; }
 .library-header { justify-content: space-between; flex-shrink: 0; padding: 1rem; padding-top: max(1rem, env(safe-area-inset-top)); background: white; border-bottom: 1px solid #dce5df; }
 .library-selection-footer { flex-shrink: 0; padding: .5rem max(1rem, env(safe-area-inset-right)) max(.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); background: white; border-top: 1px solid #dce5df; }
 h2 { font-size: 1.4rem; margin: 0; flex: 1 1 15rem; }
@@ -375,7 +432,7 @@ summary { color: var(--ion-color-primary); border: 1px solid currentColor; borde
 .library-save-options { display: grid; gap: .25rem; min-width: 0; margin: .5rem 0; }
 ion-radio { min-height: 2.75rem; padding-block: .5rem; white-space: normal; }
 ion-radio::part(label) { white-space: normal; overflow-wrap: break-word; }
-ion-input, ion-select { min-width: 0; font-size: 1rem; }
+ion-input, ion-select, ion-textarea, ion-searchbar { min-width: 0; font-size: 1rem; }
 input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: var(--ion-color-primary); }
 ion-button { min-height: 2.75rem; height: auto; max-width: 100%; white-space: normal; font-size: 1rem; }
 ion-button::part(native) { white-space: normal; padding-block: .65rem; }
@@ -384,7 +441,8 @@ ion-button::part(native) { white-space: normal; padding-block: .65rem; }
 .player-icon-action ion-icon { font-size: 1.35rem; }
 .saved-library-modal ion-segment { display: flex; flex-wrap: wrap; }
 .saved-library-modal ion-segment-button { flex: 1 0 8rem; max-width: 100%; min-width: 0; min-height: 2.75rem; }
-ion-label { white-space: normal; font-size: 1rem; }
+ion-label { white-space: normal; font-size: 1rem; line-height: 1.4; }
+.saved-library-modal ion-segment-button::part(native) { padding-block: .6rem; }
 @media (max-width: 35rem) { .saved-library-modal { --height: 100%; --border-radius: 0; } }
 </style>
 
