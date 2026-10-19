@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { prepareRosterEditorSave } from '../src/services/rosterEditor.mjs';
+import { emptyRosterData, addSavedPlayer } from '../src/services/rosterData.mjs';
 
 // Exercise the actual component methods with only native alert/UI dependencies stubbed.
 function methods(file, globals = {}) {
@@ -69,6 +71,32 @@ test('select all adds only filtered IDs, preserves existing selection order and 
   assert.equal(JSON.stringify(state.selectedIds),JSON.stringify(['b','a','c']));
   api.selectAllPlayers.call(state);
   assert.equal(state.selectedIds.length,3);
+});
+
+test('cancel roster editor clears staged players and selection without touching saved data', () => {
+  const api = methods('SavedRostersModal.vue');
+  const data = emptyRosterData(), before = JSON.stringify(data);
+  const state = {data,editorOpen:true,editingRosterId:'r',rosterName:'Draft',selectedIds:['new'],stagedPlayers:[{id:'new',displayName:'Guest'}],addingPlayers:true,entryText:'Another',selectingForPlay:false};
+  api.cancelRosterEdit.call(state);
+  assert.equal(state.editorOpen,false);
+  assert.equal(state.stagedPlayers.length,0);
+  assert.equal(state.selectedIds.length,0);
+  assert.equal(JSON.stringify(data),before);
+});
+
+test('failed editor commit retains staged entries and selection for retry; success closes editor', async () => {
+  const api = methods('SavedRostersModal.vue',{prepareRosterEditorSave});
+  const data = addSavedPlayer(emptyRosterData(),'Andrea',()=> 'a');
+  let succeeds = false, lastWrite;
+  const state = {data,editingRosterId:null,rosterName:'Tuesday',selectedIds:['a','b'],stagedPlayers:[{id:'b',displayName:'Beth'}],editorOpen:true,savingRoster:false,notify(){},persistence:{snapshot:()=>({data}),saveAtomic(next){lastWrite=next;return {data:succeeds?next:data,status:succeeds?'ready':'unavailable'};}}};
+  state.cancelRosterEdit=()=>api.cancelRosterEdit.call(state);
+  await api.saveRoster.call(state);
+  assert.equal(state.editorOpen,true); assert.equal(state.stagedPlayers.length,1);
+  assert.equal(state.data.players.length,1); assert.equal(state.savingRoster,false);
+  succeeds=true; await api.saveRoster.call(state);
+  assert.equal(state.editorOpen,false); assert.equal(state.data.players.length,2);
+  assert.equal(lastWrite.rosters.length,1);
+  assert.deepEqual(lastWrite.workingRoster,data.workingRoster);
 });
 
 test('successful generation positions the first round only after rendering', async () => {

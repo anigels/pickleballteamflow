@@ -77,12 +77,20 @@
               </div>
             </div>
 
+            <div class="saved-roster-actions" role="group" aria-label="Saved roster actions">
             <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('rosters')">
               <span class="saved-library-action-content">
                 <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="folderOpenOutline" /></span>
                 <span>Load Saved Roster</span>
               </span>
             </ion-button>
+            <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="openSavedLibrary('save')">
+              <span class="saved-library-action-content">
+                <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="saveOutline" /></span>
+                <span>Save Today's Roster</span>
+              </span>
+            </ion-button>
+            </div>
             <div class="roster-input-wrapper">
               <ion-textarea
                 ref="rosterTextarea"
@@ -110,6 +118,8 @@
                 player{{ players.length === 1 ? '' : 's' }}
               </div>
             </div>
+
+
 
             <input
               type="file"
@@ -2516,6 +2526,9 @@ export default {
 .saved-library-action-content > span:last-child { min-width: 0; overflow-wrap: break-word; }
 .saved-library-action-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex: 0 0 3rem; border-radius: .875rem; background: #ddedc4; color: var(--ion-color-primary); }
 .saved-library-action-icon ion-icon { width: 1.625rem; height: 1.625rem; }
+.saved-roster-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; margin-bottom: 1rem; }
+.saved-roster-actions .saved-library-button { margin: 0; }
+.saved-roster-actions .saved-library-action-content { width: 100%; }
 
 /* =========================================================
    BASE / OVERFLOW SAFETY
