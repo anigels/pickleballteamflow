@@ -65,9 +65,10 @@
 
       <!-- =====================================================
            BOTTOM NAV
-           Shared phone, tablet, and web destinations
+           Native phones only
       ====================================================== -->
       <nav
+        v-if="useBottomNav"
         class="main-tab-bar"
         aria-label="Main navigation"
       >
