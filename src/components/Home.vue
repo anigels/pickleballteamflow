@@ -80,11 +80,17 @@
               </div>
             </div>
 
-            <div class="saved-roster-actions" role="group" aria-label="Load players for today">
+            <div class="saved-roster-actions" role="group" aria-label="Roster actions">
             <ion-button fill="outline" class="saved-library-button" @click="openPlayerSelector">
               <span class="saved-library-action-content">
                 <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="folderOpenOutline" /></span>
                 <span>Load Players &amp; Rosters</span>
+              </span>
+            </ion-button>
+            <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="openSaveRoster">
+              <span class="saved-library-action-content">
+                <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="saveOutline" /></span>
+                <span>Save Players &amp; Roster</span>
               </span>
             </ion-button>
             </div>
@@ -1123,6 +1129,7 @@ import {
   listOutline,
   peopleOutline,
   folderOpenOutline,
+  saveOutline,
   playOutline,
   refreshOutline,
   settingsOutline,
@@ -1148,6 +1155,7 @@ import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../se
 import { inject } from 'vue';
 import PlayerRosterSelector from './PlayerRosterSelector.vue';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
+import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
 
 export default {
   name: 'Home',
@@ -1188,6 +1196,7 @@ export default {
       listOutline,
       peopleOutline,
       folderOpenOutline,
+      saveOutline,
       playOutline,
       refreshOutline,
       settingsOutline,
@@ -1389,6 +1398,67 @@ export default {
   methods: {
     openPlayerSelector() {
       this.selectorOpen = true;
+    },
+
+    async openSaveRoster() {
+      const snapshot = this.rosterPersistence.snapshot();
+      const review = reviewRosterImport(snapshot.data, this.namesText);
+
+      if (review.error) {
+        this.showMessage(review.error);
+        return;
+      }
+
+      const countMsg =
+        `${review.entries.length} ${review.entries.length === 1 ? 'player' : 'players'} · ` +
+        `${review.newCount} new · ${review.existingCount} already saved.`;
+
+      const alert = await alertController.create({
+        header: 'Save Players & Roster',
+        subHeader: countMsg,
+        cssClass: 'saved-roster-overlay',
+        message: 'Enter a name for this roster.',
+        inputs: [{
+          name: 'rosterName',
+          type: 'text',
+          placeholder: 'e.g. Tuesday Morning',
+          attributes: { autocomplete: 'off' }
+        }],
+        buttons: [
+          { text: 'Cancel', role: 'cancel' },
+          {
+            text: 'Save Roster',
+            cssClass: 'roster-confirm-action',
+            handler: (inputData) => {
+              const name = (inputData.rosterName ?? '').trim();
+              if (!name) return false;
+              this.executeSaveRoster(name);
+            }
+          }
+        ]
+      });
+
+      await alert.present();
+    },
+
+    executeSaveRoster(rosterName) {
+      try {
+        const snapshot = this.rosterPersistence.snapshot();
+        const next = saveRosterFromText(snapshot.data, {
+          namesText: this.namesText,
+          mode: 'new',
+          rosterName
+        });
+        const result = this.rosterPersistence.saveAtomic(next);
+        const count = this.players.length;
+        const msg = `"${rosterName}" saved with ${count} player${count === 1 ? '' : 's'}.`;
+        this.showMessage(
+          result.status === 'ready' ? msg : msg + ' (memory only — storage unavailable)',
+          result.status === 'ready' ? 'alert alert-success' : 'alert alert-warning'
+        );
+      } catch (error) {
+        this.showMessage(error.message);
+      }
     },
     applySavedRoster(selection) {
       try {

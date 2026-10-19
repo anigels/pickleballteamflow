@@ -44,14 +44,62 @@
           </form>
         </section>
 
-        <section v-if="(tab === 'players' || editorOpen) && !addingPlayers" :aria-label="editorOpen ? 'Roster editor' : 'Saved players'">
-          <template v-if="editorOpen">
+        <!-- =====================================================
+             ROSTER EDITOR
+        ====================================================== -->
+        <section v-if="editorOpen && !addingPlayers" aria-labelledby="roster-selection-title">
+          <div class="library-panel roster-editor-panel">
             <h3 id="roster-selection-title" tabindex="-1">{{ editingRosterId ? 'Edit Roster' : 'Create Roster' }}</h3>
             <ion-input v-model="rosterName" label="Roster Name" label-placement="stacked" fill="outline" autocomplete="off" placeholder="e.g. Tuesday Morning" />
-          </template>
+
+            <div class="roster-members-heading">
+              <span class="setting-label">Roster Members</span>
+              <span class="roster-members-count" aria-live="polite">
+                {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'player' : 'players' }}
+              </span>
+            </div>
+
+            <p v-if="!selectedIds.length" class="roster-members-empty library-help">
+              No players added yet. Use <strong>Add Players</strong> to select from your library.
+            </p>
+            <ul v-else class="roster-member-list">
+              <li v-for="id in selectedIds" :key="id" class="roster-member-row">
+                <img class="library-player-badge" src="../assets/saved-player-pickleball.png" width="32" height="32" alt="" aria-hidden="true">
+                <span class="roster-member-name">{{ playerName(id) }}</span>
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  class="roster-member-remove"
+                  :aria-label="`Remove ${playerName(id)} from roster`"
+                  @click="removeFromRoster(id)"
+                >
+                  <ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" />
+                </ion-button>
+              </li>
+            </ul>
+
+            <ion-button class="add-players-btn" @click="openPickerModal">
+              <ion-icon :icon="addOutline" slot="start" aria-hidden="true" />
+              Add Players
+            </ion-button>
+          </div>
+
+          <PlayerPickerModal
+            v-if="pickerOpen"
+            :is-open="pickerOpen"
+            :players="availableToAdd"
+            @confirm="addFromPicker"
+            @cancel="pickerOpen = false"
+          />
+        </section>
+
+        <!-- =====================================================
+             PLAYERS ADMIN (not in editor)
+        ====================================================== -->
+        <section v-if="tab === 'players' && !editorOpen && !addingPlayers" aria-label="Saved players">
           <div class="library-actions">
             <ion-button @click="openPlayerEntry"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />Add Players</ion-button>
-            <ion-button v-if="!adminOnly && !editorOpen && !selectingForPlay && data.players.length" fill="outline" @click="selectingForPlay = true; selectedIds = []">Select for Play</ion-button>
+            <ion-button v-if="!adminOnly && !selectingForPlay && data.players.length" fill="outline" @click="selectingForPlay = true; selectedIds = []">Select for Play</ion-button>
             <ion-button v-if="selectingForPlay" fill="outline" @click="selectingForPlay = false; selectedIds = []">Cancel Selection</ion-button>
           </div>
           <div v-if="!availablePlayers.length" class="library-panel">
@@ -59,41 +107,39 @@
             <p>Save the people you regularly play with, then choose who belongs in this roster.</p>
           </div>
           <ion-searchbar v-if="availablePlayers.length" v-model="search" aria-label="Search players" placeholder="Search players" />
-          <div v-if="editorOpen || selectingForPlay" class="library-actions">
+          <div v-if="selectingForPlay" class="library-actions">
             <ion-button fill="outline" :disabled="!filteredPlayers.some(player => !selectedIds.includes(player.id))" @click="selectAllPlayers">{{ search.trim() ? 'Select All Results' : 'Select All' }}</ion-button>
             <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear Selection</ion-button>
           </div>
-          <p class="library-help" aria-live="polite">{{ availablePlayers.length }} {{ availablePlayers.length === 1 ? 'player' : 'players' }}<template v-if="editorOpen || selectingForPlay"> · {{ selectedIds.length }} selected</template></p>
+          <p class="library-help" aria-live="polite">{{ availablePlayers.length }} {{ availablePlayers.length === 1 ? 'player' : 'players' }}<template v-if="selectingForPlay"> · {{ selectedIds.length }} selected</template></p>
           <p v-if="availablePlayers.length && !filteredPlayers.length">No players match your search.</p>
           <ul class="library-list">
             <li v-for="player in filteredPlayers" :key="player.id" class="library-panel">
               <div class="library-player-row">
-                <component :is="editorOpen || selectingForPlay ? 'label' : 'div'" class="library-player-label" :class="{ 'player-display-only': !editorOpen && !selectingForPlay }">
-                  <input v-if="editorOpen || selectingForPlay" v-model="selectedIds" type="checkbox" :value="player.id">
+                <component :is="selectingForPlay ? 'label' : 'div'" class="library-player-label" :class="{ 'player-display-only': !selectingForPlay }">
+                  <input v-if="selectingForPlay" v-model="selectedIds" type="checkbox" :value="player.id">
                   <img class="library-player-badge" src="../assets/saved-player-pickleball.png" width="38" height="38" alt="" aria-hidden="true">
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </component>
                 <div v-if="!selectingForPlay" class="library-actions">
                   <ion-button class="player-icon-action" fill="outline" :aria-label="`Edit ${player.displayName}`" title="Edit player name" @click="startRename(player)"><ion-icon slot="icon-only" :icon="pencilOutline" aria-hidden="true" /></ion-button>
-                  <ion-button v-if="editorOpen && selectedIds.includes(player.id)" fill="outline" :aria-label="`Remove ${player.displayName} from this roster`" @click="selectedIds = selectedIds.filter(id => id !== player.id)">Remove</ion-button>
-                  <ion-button v-if="!editorOpen" class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
+                  <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
                 </div>
               </div>
               <form v-if="editingPlayerId === player.id" class="library-form" @submit.prevent="renamePlayer">
                 <label :for="`rename-${player.id}`">New display name</label>
                 <input :id="`rename-${player.id}`" v-model="editedName" autocomplete="off">
-                <p class="library-help">{{ editorOpen ? 'Saved with Save Roster. Updates this player’s name throughout your saved library.' : 'Updates saved rosters.' }} Today's roster and generated rounds stay unchanged.</p>
+                <p class="library-help">Updates saved rosters. Today's roster and generated rounds stay unchanged.</p>
                 <div class="library-actions">
-                  <ion-button type="submit" :disabled="!editedName.trim()">{{ editorOpen ? 'Apply Name' : 'Save name' }}</ion-button>
+                  <ion-button type="submit" :disabled="!editedName.trim()">Save name</ion-button>
                   <ion-button fill="outline" @click="editingPlayerId = null">Cancel</ion-button>
                 </div>
               </form>
             </li>
           </ul>
-
         </section>
 
-        <section v-else-if="tab === 'rosters' && !addingPlayers" aria-label="Saved rosters">
+        <section v-else-if="tab === 'rosters' && !editorOpen && !addingPlayers" aria-label="Saved rosters">
           <ion-button @click="createRoster"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />Create Roster</ion-button>
           <ion-searchbar v-if="data.rosters.length" v-model="rosterSearch" aria-label="Search saved rosters" placeholder="Search saved rosters" />
           <p v-if="data.rosters.length && !filteredRosters.length">No saved rosters match your search.</p>
@@ -177,10 +223,11 @@ import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsi
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 import { stagePlayers, reviewPlayerEntry, prepareRosterEditorSave } from '../services/rosterEditor.mjs';
 import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport.mjs';
+import PlayerPickerModal from './PlayerPickerModal.vue';
 
 export default {
   name: 'SavedRostersModal',
-  components: { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
+  components: { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, PlayerPickerModal },
   setup() { return { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline }; },
   props: {
     isOpen: Boolean,
@@ -198,11 +245,12 @@ export default {
       data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, toastVisible: false, notifier: null, deletionPending: false,
       saveComplete: false, rosterSearch: '', importMode: 'players', importRosterName: '', importRosterId: '',
       editorOpen: false, stagedPlayers: [], renamedPlayers: {}, addingPlayers: false, entryText: '', selectingForPlay: false, savingRoster: false, search: '', selectedIds: [], editingPlayerId: null, editedName: '',
-      editingRosterId: null, rosterName: '', pendingApply: null
+      editingRosterId: null, rosterName: '', pendingApply: null, pickerOpen: false
     };
   },
   computed: {
     availablePlayers() { return [...this.data.players.map(p => ({ ...p, displayName: this.renamedPlayers[p.id] ?? p.displayName })), ...this.stagedPlayers]; },
+    availableToAdd() { return this.data.players.filter(p => !this.selectedIds.includes(p.id)); },
     entryReview() { return reviewPlayerEntry(this.availablePlayers, this.entryText); },
     importReview() { return reviewRosterImport(this.data, this.namesText); },
     importTarget() { return this.data.rosters.find(roster => roster.id === this.importRosterId); },
@@ -222,6 +270,20 @@ export default {
   methods: {
     selectAllPlayers() {
       this.selectedIds = [...new Set([...this.selectedIds, ...this.filteredPlayers.map(player => player.id)])];
+    },
+    playerName(id) {
+      const player = this.data.players.find(p => p.id === id);
+      return player ? (this.renamedPlayers[id] ?? player.displayName) : 'Unknown player';
+    },
+    removeFromRoster(id) {
+      this.selectedIds = this.selectedIds.filter(existingId => existingId !== id);
+    },
+    openPickerModal() {
+      this.pickerOpen = true;
+    },
+    addFromPicker(ids) {
+      this.selectedIds = [...this.selectedIds, ...ids.filter(id => !this.selectedIds.includes(id))];
+      this.pickerOpen = false;
     },
     notify(message, error = false) { void this.notifier.show(message, error); },
     announceInitialStatus() {
@@ -348,7 +410,7 @@ export default {
     },
     cancelRosterEdit() {
       this.editingRosterId = null; this.rosterName = ''; this.selectedIds = [];
-      this.stagedPlayers = []; this.renamedPlayers = {}; this.editingPlayerId = null; this.editedName = ''; this.editorOpen = false; this.addingPlayers = false; this.entryText = ''; this.selectingForPlay = false;
+      this.stagedPlayers = []; this.renamedPlayers = {}; this.editingPlayerId = null; this.editedName = ''; this.editorOpen = false; this.addingPlayers = false; this.entryText = ''; this.selectingForPlay = false; this.pickerOpen = false;
     },
     rosterNames(roster) {
       const names = roster.playerIds.slice(0, 4).map(id => this.data.players.find(p => p.id === id)?.displayName).join(', ');
@@ -429,6 +491,33 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-panel { margin-block: 1rem; padding: 1rem; border: 1px solid #dce5df; border-radius: 1rem; }
 .library-list { list-style: none; margin: 0; padding: 0; }
 .library-form { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; margin-block: 1rem; }
+
+/* Roster editor — member list */
+.roster-members-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.roster-members-count { font-size: 0.85rem; color: #6c757d; }
+.roster-members-empty { margin: 0.5rem 0 0.75rem; }
+.roster-editor-panel { margin-top: 0.5rem; }
+.roster-member-list { list-style: none; padding: 0; margin: 0 0 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.roster-member-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.25rem 0.45rem 0.65rem;
+  border: 1px solid #dce5df;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  min-height: 48px;
+}
+.roster-member-name { flex: 1 1 0; min-width: 0; font-size: 0.95rem; font-weight: 600; color: #212529; overflow-wrap: anywhere; }
+.roster-member-remove { --padding-start: 0.4rem; --padding-end: 0.4rem; margin: 0; flex-shrink: 0; }
+.add-players-btn { margin-top: 0.25rem; }
 .library-player-label { display: flex; align-items: center; gap: .75rem; flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; cursor: pointer; }
 .library-player-label span { min-width: 0; }
 .library-player-badge { width: 38px; height: 38px; flex: 0 0 38px; object-fit: contain; pointer-events: none; }
