@@ -78,7 +78,10 @@
             </div>
 
             <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('rosters')">
-              <ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Load Saved Roster
+              <span class="saved-library-action-content">
+                <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="folderOpenOutline" /></span>
+                <span>Load Saved Roster</span>
+              </span>
             </ion-button>
             <div class="roster-input-wrapper">
               <ion-textarea
@@ -2507,8 +2510,12 @@ export default {
 </script>
 
 <style scoped>
-.saved-library-button { --color: var(--ion-color-primary); --border-color: var(--ion-color-primary); height: auto; min-height: 2.75rem; max-width: 100%; white-space: normal; margin-bottom: 1rem; }
-.saved-library-button::part(native) { white-space: normal; padding-block: .65rem; }
+.saved-library-button { height: auto; min-height: 2.75rem; max-width: 100%; white-space: normal; margin: 0 0 1rem; }
+.saved-library-button::part(native) { white-space: normal; padding: .75rem 1rem; }
+.saved-library-action-content { display: flex; align-items: center; gap: .75rem; min-width: 0; text-align: left; line-height: 1.4; }
+.saved-library-action-content > span:last-child { min-width: 0; overflow-wrap: break-word; }
+.saved-library-action-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex: 0 0 3rem; border-radius: .875rem; background: #ddedc4; color: var(--ion-color-primary); }
+.saved-library-action-icon ion-icon { width: 1.625rem; height: 1.625rem; }
 
 /* =========================================================
    BASE / OVERFLOW SAFETY
