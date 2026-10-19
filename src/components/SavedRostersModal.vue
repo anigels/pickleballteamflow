@@ -30,11 +30,6 @@
           </div>
         </section>
 
-        <div v-if="embedded && !editorOpen && !addingPlayers && !selectingForPlay" class="library-actions">
-          <ion-button v-if="tab !== 'save'" fill="outline" @click="tab = 'save'; saveComplete = false"><ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Today's Roster</ion-button>
-          <ion-button v-else fill="outline" @click="tab = 'rosters'"><ion-icon :icon="arrowBackOutline" slot="start" aria-hidden="true" />Back to Saved Rosters</ion-button>
-        </div>
-
         <section v-if="addingPlayers" class="library-panel" aria-labelledby="add-players-title">
           <h3 id="add-players-title" tabindex="-1">Add Players</h3>
           <form class="library-form" @submit.prevent="addPlayers">
@@ -174,7 +169,7 @@
 
 <script>
 import { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
-import { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline, arrowBackOutline } from 'ionicons/icons';
+import { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline } from 'ionicons/icons';
 import { addSavedPlayer, renameSavedPlayer, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
 import { createRosterNotifier } from '../services/rosterNotifications.mjs';
 import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsing.mjs';
@@ -185,7 +180,7 @@ import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport
 export default {
   name: 'SavedRostersModal',
   components: { IonButton, IonIcon, IonTextarea, IonSearchbar, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
-  setup() { return { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline, arrowBackOutline }; },
+  setup() { return { pencilOutline, trashOutline, addOutline, saveOutline, folderOpenOutline }; },
   props: {
     isOpen: Boolean,
     embedded: Boolean,
