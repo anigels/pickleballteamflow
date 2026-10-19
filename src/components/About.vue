@@ -95,7 +95,7 @@ export default {
   name: 'About',
   components: { IonCard, IonCardContent, IonIcon, IonAccordion, IonAccordionGroup, IonItem, IonLabel, IonInput },
   setup() { return { logoLinkedin }; },
-  data() { return { appVersion: __APP_VERSION__, query: '', expandedTopics: [] }; },
+  data() { return { appVersion: __APP_VERSION__, query: '', expandedTopics: this.$route.query.topic === 'saved-rosters' ? ['saved-rosters'] : [] }; },
   computed: { filteredTopics() { return filterHelpTopics(this.query); } }
 };
 </script>

@@ -1,19 +1,19 @@
 // Help content only; no session or persistence dependencies.
 export const helpTopics = [
   { id: 'getting-started', title: 'Getting Started', steps: [
-    'Add 8–24 players in Game Setup, one name per line. You can type names, use Saved Players & Rosters, or Scan Names from Photo.',
+    'Add 8–24 players in Game Setup, one name per line. You can type names, use Saved Players or Load Roster, or Scan Names from Photo.',
     'Choose 2–12 available courts and the number of rounds. Each full court needs four players; extra players rotate through sit-outs.',
     'Tap Generate Court Assignments, then check the first round’s courts and Sit Out list.'
   ], notes: ['Pickleball Team Flow varies partners and opponents, reduces repeat partnerships, and distributes sit-outs as evenly as possible.'] },
   { id: 'saved-rosters', title: 'Saved Players & Rosters', steps: [
-    'To save one player, open Saved Players & Rosters → Players, enter a name, and tap Add player. Use Rename to change a saved name.',
+    'To save one player, open Saved Players, enter a name, and tap Add player. Use Rename to change a saved name.',
     'To create a reusable roster, select players in Players, enter a roster name, and tap Create saved roster.',
-    'For today, select saved players and tap Add to today’s roster. Or open Rosters and tap Load roster to use a saved group. Confirm replacing today’s names if asked. Clear existing assignments before adding or loading players.',
+    'For today, select saved players and tap Add to today’s roster. Or open Load Roster in Game Setup and tap Load roster to use a saved group. Confirm replacing today’s names if asked. Clear existing assignments before adding or loading players.',
     'Adjust attendance in Game Setup: remove absent names and type guests on new lines. These edits change today’s roster only.',
-    'To keep today’s names, tap Save today’s roster… in Game Setup. Save players only, save a new named roster, or update an existing roster. Updates require confirmation.',
-    'To change a saved group, open Rosters → Edit, select or uncheck players, then Save roster changes. Unchecked players remain in Saved Players.',
+    'To keep today’s names, tap Save Roster in Game Setup. Save players only, save a new named roster, or update an existing roster. Updates require confirmation.',
+    'To change a saved group, open Load Roster → Edit, select or uncheck players, then Save roster changes. Unchecked players remain in Saved Players.',
     'Delete asks for confirmation. Deleting a saved player removes them from every saved roster, but leaves today’s roster and rounds unchanged. Deleting a roster keeps its saved players. Empty saved rosters are kept.'
-  ], notes: ['Saved Players is alphabetical; saved rosters keep their player order. Give people with the same name distinct display names, such as Marco R and Marco S.', 'Clearing today’s roster does not delete saved players or rosters. Your saved library and today’s draft stay on this device. Generated rounds are not restored after closing the app.'] },
+  ], notes: ["Saved rosters are reusable groups. Changes to today's players won't change a saved roster unless you save those changes.", 'Saved Players is alphabetical; saved rosters keep their player order. Give people with the same name distinct display names, such as Marco R and Marco S.', 'Clearing today’s roster does not delete saved players or rosters. Your saved library and today’s draft stay on this device. Generated rounds are not restored after closing the app.'] },
   { id: 'rounds', title: 'Managing Rounds', steps: [
     'Each court shows two teams: Serving and Receiving. Check Sit Out for players waiting this round.',
     'Tap Complete Round when play finishes. The completed round collapses so you can see the next round.',
