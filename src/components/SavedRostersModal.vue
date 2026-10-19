@@ -1,11 +1,11 @@
 <template>
-  <ion-modal :is-open="isOpen" class="app-modal saved-library-modal" aria-labelledby="saved-library-title"
+  <component :is="embedded ? 'section' : 'ion-modal'" :is-open="embedded ? undefined : isOpen" class="saved-library-modal" :class="embedded ? 'embedded-library' : 'app-modal'" :aria-labelledby="embedded ? undefined : 'saved-library-title'"
     @willPresent="refresh" @didPresent="announceInitialStatus" @didDismiss="$emit('close')">
-        <header class="library-header">
+        <header v-if="!embedded" class="library-header">
           <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
           <ion-button fill="outline" @click="$emit('close')">Close</ion-button>
         </header>
-    <ion-content>
+    <component :is="embedded ? 'div' : 'ion-content'">
       <div class="library-shell" :class="{ 'library-toast-visible': toastVisible }">
 
         <details v-if="tab !== 'save'" class="library-context-help">
@@ -15,9 +15,10 @@
         <p v-if="hasAssignments && tab !== 'save'" id="library-session-note" class="library-notice">
           To add players to today's roster or load a roster, first use Clear Assignments in Game Setup.
         </p>
-        <ion-segment v-if="tab !== 'save' && !editingRosterId" v-model="tab" aria-label="Saved library">
+        <ion-segment v-if="(embedded || tab !== 'save') && !editingRosterId" v-model="tab" aria-label="Saved library">
           <ion-segment-button value="players"><ion-label>Players</ion-label></ion-segment-button>
           <ion-segment-button value="rosters"><ion-label>Rosters</ion-label></ion-segment-button>
+          <ion-segment-button v-if="embedded" value="save"><ion-label>Save Today’s Roster</ion-label></ion-segment-button>
 
         </ion-segment>
 
@@ -89,7 +90,7 @@
           <label v-if="data.rosters.length" for="saved-roster-search">Search saved rosters</label>
           <input v-if="data.rosters.length" id="saved-roster-search" v-model="rosterSearch" type="search" autocomplete="off">
           <p v-if="data.rosters.length && !filteredRosters.length">No saved rosters match your search.</p>
-          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or use Save Roster in Game Setup.</p>
+          <p v-if="!data.rosters.length" class="library-help">Select names in Players to create a roster, or choose Save Today’s Roster here.</p>
           <ul class="library-list">
             <li v-for="roster in filteredRosters" :key="roster.id" class="library-panel">
               <h3>{{ roster.name }}</h3>
@@ -104,6 +105,10 @@
           </ul>
         </section>
 
+        <section v-else-if="tab === 'save' && !namesText.trim()" class="library-panel">
+          <h3>No players in today's roster yet</h3><p>Enter names or scan a photo on Play, then come back to save them for next time.</p>
+          <ion-button fill="outline" @click="$router.push('/')">Go to Play</ion-button>
+        </section>
         <section v-else-if="!saveComplete" aria-label="Save current roster" class="library-panel">
 
           <p class="library-help">Keep these players for another day. Today's game stays unchanged.</p>
@@ -143,14 +148,14 @@
         </section>
 
       </div>
-    </ion-content>
+    </component>
     <footer v-if="tab === 'players' && selectedIds.length && !pendingApply" class="library-selection-footer">
       <ion-button v-if="!editingRosterId" expand="block" :disabled="hasAssignments" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">
         Add {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'player' : 'players' }} to today's roster
       </ion-button>
       <ion-button v-else expand="block" :disabled="!rosterName.trim()" @click="saveRoster">Save roster changes · {{ selectedIds.length }} selected</ion-button>
     </footer>
-  </ion-modal>
+  </component>
 </template>
 
 <script>
@@ -166,6 +171,7 @@ export default {
   components: { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
   props: {
     isOpen: Boolean,
+    embedded: Boolean,
     initialTab: { type: String, default: 'players' },
     hasAssignments: Boolean,
     namesText: { type: String, default: '' },
@@ -191,6 +197,8 @@ export default {
   },
   created() { this.notifier = createRosterNotifier(toastController, visible => { this.toastVisible = visible; }); },
   beforeUnmount() { this.notifier.close(); },
+  activated() { if (this.embedded) { this.notifier = createRosterNotifier(toastController, visible => { this.toastVisible = visible; }); this.refresh(); this.announceInitialStatus(); } },
+  deactivated() { if (this.embedded) this.notifier.close(); },
   watch: {
     tab() { this.pendingApply = null; },
     'importReview.error'(value) { if (this.tab === 'save' && value) this.notify(value, true); }
@@ -333,6 +341,13 @@ export default {
 .saved-library-modal {
   --width: min(48rem, 100%); --height: 90%; --border-radius: 1.25rem;
 }
+.embedded-library { max-width: 48rem; margin: auto; background: white; border: 1px solid #dce5df; border-radius: 1rem; }
+.embedded-library .library-shell { padding: clamp(.5rem, 3vw, 1rem); }
+.embedded-library .library-panel { padding: clamp(.5rem, 3vw, 1rem); }
+.embedded-library .library-actions { min-width: 0; max-width: 100%; }
+.embedded-library .library-player-label { gap: clamp(.25rem, 2vw, .75rem); padding: clamp(.25rem, 2vw, .65rem); }
+.embedded-library .library-player-label span { overflow-wrap: anywhere; }
+.embedded-library .library-selection-footer { border-radius: 0 0 1rem 1rem; }
 .library-shell { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); color: #26312c; }
 .library-toast-visible { padding-bottom: calc(40vh + env(safe-area-inset-bottom)); }
 .library-header, .library-player-row, .library-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
