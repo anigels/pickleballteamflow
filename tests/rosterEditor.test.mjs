@@ -10,6 +10,17 @@ function fixture() {
   return data;
 }
 const draft = overrides => ({name:'Tuesday',playerIds:['a'],stagedPlayers:[],...overrides});
+test('staged rename preserves stable references and working names until atomic save', () => {
+  let data = saveNamedRoster(fixture(),{name:'One',playerIds:['a']},()=> 'r1');
+  data = saveNamedRoster(data,{name:'Two',playerIds:['a']},()=> 'r2');
+  const before = JSON.stringify(data);
+  const next = prepareRosterEditorSave(data,draft({id:'r1',name:'One',renamedPlayers:{a:'Andrea R'}}));
+  assert.equal(next.players[0].displayName,'Andrea R');
+  assert.deepEqual(next.rosters.map(r=>r.playerIds),[['a'],['a']]);
+  assert.deepEqual(next.workingRoster,data.workingRoster);
+  assert.equal(JSON.stringify(data),before);
+  assert.throws(()=>prepareRosterEditorSave(data,draft({renamedPlayers:{missing:'Unknown'}})));
+});
 test('bulk entry skips blank, normalized duplicate, repeated names without overwriting identities', () => {
   const data = fixture();
   const result = reviewPlayerEntry(data.players,' Andrea \r\nMarco\nmarco\nＡＮＤＲＥＡ\n\n Sam ');

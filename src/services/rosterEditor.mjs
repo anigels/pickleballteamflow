@@ -1,4 +1,4 @@
-import { addSavedPlayer, saveNamedRoster, createRosterId } from './rosterData.mjs';
+import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, createRosterId } from './rosterData.mjs';
 
 const key = name => name.trim().normalize('NFKC').toLowerCase();
 
@@ -21,10 +21,13 @@ export function stagePlayers(players, text, makeId = createRosterId) {
   return { ...review, additions };
 }
 
-export function prepareRosterEditorSave(data, { id, name, playerIds, stagedPlayers }) {
+export function prepareRosterEditorSave(data, { id, name, playerIds, stagedPlayers, renamedPlayers = {} }) {
   if (!name.trim()) throw new Error('Enter a roster name.');
   if (!playerIds.length) throw new Error('Select at least one player.');
   let next = data;
+  for (const [playerId, displayName] of Object.entries(renamedPlayers)) {
+    next = renameSavedPlayer(next, playerId, displayName);
+  }
   // Recheck against the latest snapshot; never overwrite a concurrent library edit.
   for (const player of stagedPlayers) {
     if (!reviewPlayerEntry(next.players, player.displayName).accepted.length) throw new Error(`"${player.displayName}" is now in Saved Players. Cancel and reopen this roster to select the saved player.`);
