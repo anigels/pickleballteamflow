@@ -73,17 +73,18 @@
                   <img class="library-player-badge" src="../assets/saved-player-pickleball.png" width="38" height="38" alt="" aria-hidden="true">
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </component>
-                <div v-if="!editorOpen && !selectingForPlay" class="library-actions">
+                <div v-if="!selectingForPlay" class="library-actions">
                   <ion-button class="player-icon-action" fill="outline" :aria-label="`Edit ${player.displayName}`" title="Edit player name" @click="startRename(player)"><ion-icon slot="icon-only" :icon="pencilOutline" aria-hidden="true" /></ion-button>
-                  <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
+                  <ion-button v-if="editorOpen && selectedIds.includes(player.id)" fill="outline" :aria-label="`Remove ${player.displayName} from this roster`" @click="selectedIds = selectedIds.filter(id => id !== player.id)">Remove</ion-button>
+                  <ion-button v-if="!editorOpen" class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
                 </div>
               </div>
               <form v-if="editingPlayerId === player.id" class="library-form" @submit.prevent="renamePlayer">
                 <label :for="`rename-${player.id}`">New display name</label>
                 <input :id="`rename-${player.id}`" v-model="editedName" autocomplete="off">
-                <p class="library-help">Updates saved rosters. Today's roster and generated rounds stay unchanged.</p>
+                <p class="library-help">{{ editorOpen ? 'Saved with Save Roster. Updates this player’s name throughout your saved library.' : 'Updates saved rosters.' }} Today's roster and generated rounds stay unchanged.</p>
                 <div class="library-actions">
-                  <ion-button type="submit" :disabled="!editedName.trim()">Save name</ion-button>
+                  <ion-button type="submit" :disabled="!editedName.trim()">{{ editorOpen ? 'Apply Name' : 'Save name' }}</ion-button>
                   <ion-button fill="outline" @click="editingPlayerId = null">Cancel</ion-button>
                 </div>
               </form>
@@ -160,7 +161,7 @@
         Add {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'player' : 'players' }} to today's roster
       </ion-button>
       <div v-else class="library-actions">
-        <ion-button :disabled="!rosterName.trim() || !selectedIds.length || savingRoster" @click="saveRoster"><ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Roster · {{ selectedIds.length }} selected</ion-button>
+        <ion-button :disabled="!rosterName.trim() || !selectedIds.length || savingRoster || !!editingPlayerId" @click="saveRoster"><ion-icon :icon="saveOutline" slot="start" aria-hidden="true" />Save Roster · {{ selectedIds.length }} selected</ion-button>
         <ion-button fill="outline" :disabled="savingRoster" @click="cancelRosterEdit(); tab = 'rosters'">Cancel</ion-button>
       </div>
     </footer>
@@ -196,12 +197,12 @@ export default {
     return {
       data: snapshot.data, storageStatus: snapshot.status, tab: this.initialTab, toastVisible: false, notifier: null, deletionPending: false,
       saveComplete: false, rosterSearch: '', importMode: 'players', importRosterName: '', importRosterId: '',
-      editorOpen: false, stagedPlayers: [], addingPlayers: false, entryText: '', selectingForPlay: false, savingRoster: false, search: '', selectedIds: [], editingPlayerId: null, editedName: '',
+      editorOpen: false, stagedPlayers: [], renamedPlayers: {}, addingPlayers: false, entryText: '', selectingForPlay: false, savingRoster: false, search: '', selectedIds: [], editingPlayerId: null, editedName: '',
       editingRosterId: null, rosterName: '', pendingApply: null
     };
   },
   computed: {
-    availablePlayers() { return [...this.data.players, ...this.stagedPlayers]; },
+    availablePlayers() { return [...this.data.players.map(p => ({ ...p, displayName: this.renamedPlayers[p.id] ?? p.displayName })), ...this.stagedPlayers]; },
     entryReview() { return reviewPlayerEntry(this.availablePlayers, this.entryText); },
     importReview() { return reviewRosterImport(this.data, this.namesText); },
     importTarget() { return this.data.rosters.find(roster => roster.id === this.importRosterId); },
@@ -308,15 +309,26 @@ export default {
       this.$nextTick(() => document.getElementById(`rename-${player.id}`)?.focus());
     },
     renamePlayer() {
+      if (this.editorOpen) {
+        const name = this.editedName.trim();
+        if (!name || /[\r\n]/.test(name)) { this.notify('Enter one player name.', true); return; }
+        const staged = this.stagedPlayers.find(p => p.id === this.editingPlayerId);
+        if (staged) staged.displayName = name;
+        else this.renamedPlayers[this.editingPlayerId] = name;
+        this.editingPlayerId = null;
+        this.notify('Name updated in this draft. Select Save Roster to keep it.');
+        return;
+      }
       if (this.commit(data => renameSavedPlayer(data, this.editingPlayerId, this.editedName), 'Player name updated.')) this.editingPlayerId = null;
     },
     async saveRoster() {
+      if (this.editingPlayerId) { this.notify('Apply or cancel the player name edit first.', true); return; }
       if (this.editingRosterId && !(await this.confirmRosterUpdate(this.rosterName))) return;
       if (this.savingRoster) return;
       this.savingRoster = true;
       try {
         const next = prepareRosterEditorSave(this.persistence.snapshot().data, {
-          id: this.editingRosterId, name: this.rosterName, playerIds: this.selectedIds, stagedPlayers: this.stagedPlayers
+          id: this.editingRosterId, name: this.rosterName, playerIds: this.selectedIds, stagedPlayers: this.stagedPlayers, renamedPlayers: this.renamedPlayers
         });
         const result = this.persistence.saveAtomic(next);
         this.storageStatus = result.status;
@@ -336,7 +348,7 @@ export default {
     },
     cancelRosterEdit() {
       this.editingRosterId = null; this.rosterName = ''; this.selectedIds = [];
-      this.stagedPlayers = []; this.editorOpen = false; this.addingPlayers = false; this.entryText = ''; this.selectingForPlay = false;
+      this.stagedPlayers = []; this.renamedPlayers = {}; this.editingPlayerId = null; this.editedName = ''; this.editorOpen = false; this.addingPlayers = false; this.entryText = ''; this.selectingForPlay = false;
     },
     rosterNames(roster) {
       const names = roster.playerIds.slice(0, 4).map(id => this.data.players.find(p => p.id === id)?.displayName).join(', ');
