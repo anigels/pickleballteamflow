@@ -1,12 +1,13 @@
 <template>
-  <ion-modal :is-open="isOpen" class="saved-library-modal" aria-labelledby="saved-library-title"
+  <ion-modal :is-open="isOpen" class="app-modal saved-library-modal" aria-labelledby="saved-library-title"
     @willPresent="refresh" @didPresent="announceInitialStatus" @didDismiss="$emit('close')">
-    <ion-content>
-      <div class="library-shell" :class="{ 'library-toast-visible': toastVisible }">
         <header class="library-header">
           <h2 id="saved-library-title">{{ tab === 'save' ? 'Save today’s roster' : 'Saved Players & Rosters' }}</h2>
           <ion-button fill="outline" @click="$emit('close')">Close</ion-button>
         </header>
+    <ion-content>
+      <div class="library-shell" :class="{ 'library-toast-visible': toastVisible }">
+
         <details v-if="tab !== 'save'" class="library-context-help">
           <summary>About saved rosters</summary>
           <p class="library-help">Keep a group for another day. Select players to create a roster, or load one from Rosters. Edits to today's names do not change saved groups. Find full instructions in Help.</p>
@@ -39,7 +40,8 @@
             <h3 id="roster-selection-title" tabindex="-1">{{ editingRosterId ? 'Editing saved roster: ' + rosterName : 'Use selected players' }}</h3>
             <p class="library-help">Select players below. Unchecking keeps them in Saved Players.</p>
             <div class="library-actions">
-              <ion-button v-if="!editingRosterId" :disabled="hasAssignments || !selectedIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">Add to today's roster</ion-button>
+
+              <ion-button fill="outline" :disabled="!filteredPlayers.some(player => !selectedIds.includes(player.id))" @click="selectAllPlayers">{{ search.trim() ? 'Select all results' : 'Select all players' }}</ion-button>
               <ion-button fill="outline" :disabled="!selectedIds.length" @click="selectedIds = []">Clear selection</ion-button>
             </div>
             <form class="library-form" @submit.prevent="saveRoster">
@@ -142,6 +144,12 @@
 
       </div>
     </ion-content>
+    <footer v-if="tab === 'players' && selectedIds.length && !pendingApply" class="library-selection-footer">
+      <ion-button v-if="!editingRosterId" expand="block" :disabled="hasAssignments" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" @click="requestApply(selectedIds, 'append')">
+        Add {{ selectedIds.length }} {{ selectedIds.length === 1 ? 'player' : 'players' }} to today's roster
+      </ion-button>
+      <ion-button v-else expand="block" :disabled="!rosterName.trim()" @click="saveRoster">Save roster changes · {{ selectedIds.length }} selected</ion-button>
+    </footer>
   </ion-modal>
 </template>
 
@@ -188,6 +196,9 @@ export default {
     'importReview.error'(value) { if (this.tab === 'save' && value) this.notify(value, true); }
   },
   methods: {
+    selectAllPlayers() {
+      this.selectedIds = [...new Set([...this.selectedIds, ...this.filteredPlayers.map(player => player.id)])];
+    },
     notify(message, error = false) { void this.notifier.show(message, error); },
     announceInitialStatus() {
       if (this.storageStatus !== 'ready') this.notify('Saving is unavailable. Changes are in memory only. Existing saved data is untouched.', true);
@@ -325,7 +336,8 @@ export default {
 .library-shell { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); color: #26312c; }
 .library-toast-visible { padding-bottom: calc(40vh + env(safe-area-inset-bottom)); }
 .library-header, .library-player-row, .library-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
-.library-header { justify-content: space-between; }
+.library-header { justify-content: space-between; flex-shrink: 0; padding: 1rem; padding-top: max(1rem, env(safe-area-inset-top)); background: white; border-bottom: 1px solid #dce5df; }
+.library-selection-footer { flex-shrink: 0; padding: .5rem max(1rem, env(safe-area-inset-right)) max(.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); background: white; border-top: 1px solid #dce5df; }
 h2 { font-size: 1.4rem; margin: 0; flex: 1 1 15rem; }
 h3 { font-size: 1.1rem; margin: 0 0 .5rem; }
 p, h2, h3, label, small { overflow-wrap: break-word; }
@@ -339,7 +351,7 @@ p, h2, h3, label, small { overflow-wrap: break-word; }
 .library-player-label span { min-width: 0; }
 .library-player-badge { width: 38px; height: 38px; flex: 0 0 38px; object-fit: contain; pointer-events: none; }
 small { display: block; font-size: .8rem; color: #59675f; overflow-wrap: anywhere; }
-input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
+input:not([type=checkbox]):not([type=radio]), select { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem; font: inherit; font-size: max(1rem, 16px); scroll-margin-block: 1rem; color: inherit; background: white; border: 1px solid #88978e; border-radius: .5rem; }
 input[type=checkbox] { flex: 0 0 auto; width: 1.3rem; height: 1.3rem; accent-color: var(--ion-color-primary); }
 input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--ion-color-primary); outline-offset: 2px; }
 summary { color: var(--ion-color-primary); border: 1px solid currentColor; border-radius: .5rem; padding-inline: .75rem; cursor: pointer; min-height: 2.75rem; padding-block: .5rem; }

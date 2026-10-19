@@ -50,3 +50,48 @@ test('player deletion names affected roster count, cancel does nothing, confirm 
   assert.equal(commits,1); assert.deepEqual(state.selectedIds,['b']); assert.equal(state.editingRosterId,'r');
   assert.equal(state.editingPlayerId,null); assert.equal(state.pendingApply,null); assert.equal(state.schedule[0].closed,true);
 });
+
+test('clear assignments calls the existing handler only after confirmation', async () => {
+  let role = 'cancel', calls = 0;
+  const api = methods('Home.vue', {alertController:{create:async()=>({present:async()=>{},onDidDismiss:async()=>({role})})}});
+  const state = {clearAll(){calls++;}};
+  await api.confirmClearAssignments.call(state);
+  assert.equal(calls,0);
+  role = 'confirm';
+  await api.confirmClearAssignments.call(state);
+  assert.equal(calls,1);
+});
+
+test('select all adds only filtered IDs, preserves existing selection order and avoids duplicates', () => {
+  const api = methods('SavedRostersModal.vue');
+  const state = {selectedIds:['b'],filteredPlayers:[{id:'a'},{id:'b'},{id:'c'}]};
+  api.selectAllPlayers.call(state);
+  assert.equal(JSON.stringify(state.selectedIds),JSON.stringify(['b','a','c']));
+  api.selectAllPlayers.call(state);
+  assert.equal(state.selectedIds.length,3);
+});
+
+test('successful generation positions the first round only after rendering', async () => {
+  const api = methods('Home.vue', {buildRound:(_roster,index)=>({index,sitOut:[],closed:false})});
+  let afterRender, focused;
+  const state = {players:Array.from({length:8},(_,i)=>({id:i+1,name:'Player '+i})),namesText:Array.from({length:8},(_,i)=>'Player '+i).join('\n'),courtCount:2,roundCount:3,showMessage(){},$nextTick(fn){afterRender=fn;},focusRound(round){focused=round;}};
+  api.generate.call(state);
+  assert.equal(focused,undefined);
+  assert.equal(state.schedule.length,3);
+  await afterRender();
+  assert.equal(focused,state.schedule[0]);
+  afterRender=undefined; state.players=[];
+  api.generate.call(state);
+  assert.equal(afterRender,undefined);
+});
+
+test('completion still positions the next open round with current-round fallback', async () => {
+  const api = methods('Home.vue');
+  const rounds=[{index:1,closed:false},{index:2,closed:true},{index:3,closed:false}];
+  let focused;
+  const state={sortedSchedule:rounds,completeRound(r){r.closed=true;},async $nextTick(){},async focusRound(r){focused=r;}};
+  await api.completeRoundAndFocus.call(state,rounds[0]);
+  assert.equal(focused,rounds[2]);
+  await api.completeRoundAndFocus.call(state,rounds[2]);
+  assert.equal(focused,rounds[2]);
+});
