@@ -68,8 +68,8 @@
                   <span>{{ player.displayName }}<small v-if="duplicateName(player)">Same name · Entry {{ data.players.findIndex(p => p.id === player.id) + 1 }}. Rename to distinguish.</small></span>
                 </label>
                 <div class="library-actions">
-                  <ion-button fill="outline" :aria-label="`Rename ${player.displayName}`" @click="startRename(player)">Rename</ion-button>
-                  <ion-button fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" @click="requestDelete('player', player)">Delete</ion-button>
+                  <ion-button class="player-icon-action" fill="outline" :aria-label="`Rename ${player.displayName}`" title="Edit player name" @click="startRename(player)"><ion-icon slot="icon-only" :icon="pencilOutline" aria-hidden="true" /></ion-button>
+                  <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${player.displayName}`" title="Delete player" @click="requestDelete('player', player)"><ion-icon slot="icon-only" :icon="trashOutline" aria-hidden="true" /></ion-button>
                 </div>
               </div>
               <form v-if="editingPlayerId === player.id" class="library-form" @submit.prevent="renamePlayer">
@@ -159,7 +159,8 @@
 </template>
 
 <script>
-import { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
+import { IonButton, IonIcon, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption, alertController, toastController } from '@ionic/vue';
+import { pencilOutline, trashOutline } from 'ionicons/icons';
 import { addSavedPlayer, renameSavedPlayer, saveNamedRoster, deleteSavedPlayer, deleteNamedRoster } from '../services/rosterData.mjs';
 import { createRosterNotifier } from '../services/rosterNotifications.mjs';
 import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsing.mjs';
@@ -168,7 +169,8 @@ import { reviewRosterImport, saveRosterFromText } from '../services/rosterImport
 
 export default {
   name: 'SavedRostersModal',
-  components: { IonButton, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
+  components: { IonButton, IonIcon, IonContent, IonLabel, IonModal, IonSegment, IonSegmentButton, IonRadioGroup, IonRadio, IonInput, IonSelect, IonSelectOption },
+  setup() { return { pencilOutline, trashOutline }; },
   props: {
     isOpen: Boolean,
     embedded: Boolean,
@@ -377,6 +379,9 @@ ion-input, ion-select { min-width: 0; font-size: 1rem; }
 input[type=radio] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; accent-color: var(--ion-color-primary); }
 ion-button { min-height: 2.75rem; height: auto; max-width: 100%; white-space: normal; font-size: 1rem; }
 ion-button::part(native) { white-space: normal; padding-block: .65rem; }
+.player-icon-action { min-width: 48px; min-height: 48px; margin-inline: 0; }
+.player-icon-action::part(native) { padding: .65rem; }
+.player-icon-action ion-icon { font-size: 1.35rem; }
 .saved-library-modal ion-segment { display: flex; flex-wrap: wrap; }
 .saved-library-modal ion-segment-button { flex: 1 0 8rem; max-width: 100%; min-width: 0; min-height: 2.75rem; }
 ion-label { white-space: normal; font-size: 1rem; }
