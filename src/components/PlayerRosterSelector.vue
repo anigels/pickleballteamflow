@@ -55,10 +55,10 @@
                 <ion-icon :icon="folderOpenOutline" />
               </div>
               <h3 class="selector-empty-title">No saved rosters yet</h3>
-              <p class="selector-help">Create and manage rosters in Settings under Players &amp; Rosters.</p>
-              <ion-button fill="outline" @click="goToSettings">
-                <ion-icon :icon="settingsOutline" slot="start" aria-hidden="true" />
-                Go to Settings
+              <p class="selector-help">Create and manage rosters in the Players tab.</p>
+              <ion-button fill="outline" @click="goToPlayers">
+                <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />
+                Go to Players
               </ion-button>
             </div>
 
@@ -106,10 +106,10 @@
                 <ion-icon :icon="peopleOutline" />
               </div>
               <h3 class="selector-empty-title">No players in your library</h3>
-              <p class="selector-help">Add players in Settings under Players &amp; Rosters, then come back to select them for today's game.</p>
-              <ion-button fill="outline" @click="goToSettings">
-                <ion-icon :icon="settingsOutline" slot="start" aria-hidden="true" />
-                Go to Settings
+              <p class="selector-help">Add players in the Players tab, then come back to select them for today's game.</p>
+              <ion-button fill="outline" @click="goToPlayers">
+                <ion-icon :icon="peopleOutline" slot="start" aria-hidden="true" />
+                Go to Players
               </ion-button>
             </div>
 
@@ -212,7 +212,7 @@ import {
   IonSegmentButton,
   toastController
 } from '@ionic/vue';
-import { folderOpenOutline, checkmarkCircleOutline, peopleOutline, settingsOutline } from 'ionicons/icons';
+import { folderOpenOutline, checkmarkCircleOutline, peopleOutline } from 'ionicons/icons';
 import { browseSavedPlayers, searchSavedRosters } from '../services/rosterBrowsing.mjs';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 import { createRosterNotifier } from '../services/rosterNotifications.mjs';
@@ -232,7 +232,7 @@ export default {
   },
 
   setup() {
-    return { folderOpenOutline, checkmarkCircleOutline, peopleOutline, settingsOutline };
+    return { folderOpenOutline, checkmarkCircleOutline, peopleOutline };
   },
 
   props: {
@@ -337,9 +337,9 @@ export default {
       this.pendingApply = null;
     },
 
-    goToSettings() {
+    goToPlayers() {
       if (!this.embedded) this.$emit('close');
-      this.$router.push('/settings');
+      this.$router.push('/players');
     }
   }
 };
