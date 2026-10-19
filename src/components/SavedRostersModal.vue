@@ -51,7 +51,7 @@
           </template>
           <div class="library-actions">
             <ion-button @click="openPlayerEntry"><ion-icon :icon="addOutline" slot="start" aria-hidden="true" />Add Players</ion-button>
-            <ion-button v-if="!editorOpen && !selectingForPlay && data.players.length" fill="outline" @click="selectingForPlay = true; selectedIds = []">Select for Play</ion-button>
+            <ion-button v-if="!adminOnly && !editorOpen && !selectingForPlay && data.players.length" fill="outline" @click="selectingForPlay = true; selectedIds = []">Select for Play</ion-button>
             <ion-button v-if="selectingForPlay" fill="outline" @click="selectingForPlay = false; selectedIds = []">Cancel Selection</ion-button>
           </div>
           <div v-if="!availablePlayers.length" class="library-panel">
@@ -103,7 +103,7 @@
               <p class="library-help">{{ roster.playerIds.length }} {{ roster.playerIds.length === 1 ? 'player' : 'players' }}</p>
               <p>{{ rosterNames(roster) }}</p>
               <div class="library-actions">
-                <ion-button :disabled="hasAssignments || !roster.playerIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" :aria-label="`Use ${roster.name} for play`" @click="requestApply(roster.playerIds, 'replace')"><ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Use for Play</ion-button>
+                <ion-button v-if="!adminOnly" :disabled="hasAssignments || !roster.playerIds.length" :aria-describedby="hasAssignments ? 'library-session-note' : undefined" :aria-label="`Use ${roster.name} for play`" @click="requestApply(roster.playerIds, 'replace')"><ion-icon :icon="folderOpenOutline" slot="start" aria-hidden="true" />Use for Play</ion-button>
                 <ion-button class="player-icon-action" fill="outline" :aria-label="`Edit ${roster.name} roster`" title="Edit roster" @click="editRoster(roster)"><ion-icon :icon="pencilOutline" slot="icon-only" aria-hidden="true" /></ion-button>
                 <ion-button class="player-icon-action" fill="outline" color="danger" :aria-label="`Delete ${roster.name} roster`" title="Delete roster" @click="requestDelete('roster', roster)"><ion-icon :icon="trashOutline" slot="icon-only" aria-hidden="true" /></ion-button>
               </div>
@@ -184,6 +184,7 @@ export default {
   props: {
     isOpen: Boolean,
     embedded: Boolean,
+    adminOnly: Boolean,
     initialTab: { type: String, default: 'rosters' },
     hasAssignments: Boolean,
     namesText: { type: String, default: '' },

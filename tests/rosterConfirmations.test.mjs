@@ -124,14 +124,11 @@ test('completion still positions the next open round with current-round fallback
   assert.equal(focused,rounds[2]);
 });
 
-test('setup actions open each existing library workflow without changing a session', () => {
+test('setup actions open the player selector without changing a session', () => {
   const api = methods('Home.vue');
-  for (const tab of ['players','rosters','save']) {
-    const state = {savedLibraryOpen:false,savedLibraryTab:'players',namesText:'Alex',schedule:[{closed:true}]};
-    api.openSavedLibrary.call(state,tab);
-    assert.equal(state.savedLibraryTab,tab);
-    assert.equal(state.savedLibraryOpen,true);
-    assert.equal(state.namesText,'Alex');
-    assert.equal(state.schedule[0].closed,true);
-  }
+  const state = { selectorOpen: false, namesText: 'Alex', schedule: [{ closed: true }] };
+  api.openPlayerSelector.call(state);
+  assert.equal(state.selectorOpen, true);
+  assert.equal(state.namesText, 'Alex');
+  assert.equal(state.schedule[0].closed, true);
 });

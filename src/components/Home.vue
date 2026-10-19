@@ -1,9 +1,8 @@
 <template>
   <div class="home-page">
     <!-- =========================================================
-         GAME SETUP
+         PAGE BRAND HEADER
     ========================================================== -->
-    <section class="setup-section mb-4">
     <div class="page-heading home-brand-heading mb-4">
       <img
         src="../assets/pickleball-team-flow-mark.png"
@@ -22,11 +21,15 @@
         </h1>
     
         <p class="page-subtitle text-secondary mb-0">
-          Set up your players, courts, and rounds.
+          Load your roster, configure courts, then generate assignments.
         </p>
       </div>
     </div>
 
+    <!-- =========================================================
+         TODAY'S PLAYERS
+    ========================================================== -->
+    <section class="setup-section mb-4" aria-labelledby="players-card-title">
       <ion-card class="setup-card">
         <ion-card-content class="setup-card-content">
           <div class="setup-heading">
@@ -38,10 +41,10 @@
             </div>
 
             <div class="setup-heading-text">
-              <h2 class="h5 mb-0">
-                Game Setup
+              <div class="setup-eyebrow">TODAY'S PLAYERS</div>
+              <h2 id="players-card-title" class="h5 mb-0">
+                Who's Playing
               </h2>
-
             </div>
           </div>
 
@@ -77,17 +80,11 @@
               </div>
             </div>
 
-            <div class="saved-roster-actions" role="group" aria-label="Saved roster actions">
-            <ion-button fill="outline" class="saved-library-button" @click="openSavedLibrary('rosters')">
+            <div class="saved-roster-actions" role="group" aria-label="Load players for today">
+            <ion-button fill="outline" class="saved-library-button" @click="openPlayerSelector">
               <span class="saved-library-action-content">
                 <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="folderOpenOutline" /></span>
-                <span>Load Saved Roster</span>
-              </span>
-            </ion-button>
-            <ion-button fill="outline" class="saved-library-button" :disabled="!players.length" @click="openSavedLibrary('save')">
-              <span class="saved-library-action-content">
-                <span class="saved-library-action-icon" aria-hidden="true"><ion-icon :icon="saveOutline" /></span>
-                <span>Save Today's Roster</span>
+                <span>Load Players &amp; Rosters</span>
               </span>
             </ion-button>
             </div>
@@ -156,6 +153,31 @@
               aria-live="polite"
             >
               {{ ocrProgress }}
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+    <!-- =========================================================
+         GAME SETUP
+    ========================================================== -->
+    <section class="setup-section mb-4" aria-labelledby="config-card-title">
+      <ion-card class="setup-card">
+        <ion-card-content class="setup-card-content">
+          <div class="setup-heading">
+            <div
+              class="setup-icon"
+              aria-hidden="true"
+            >
+              <ion-icon :icon="playOutline" />
+            </div>
+
+            <div class="setup-heading-text">
+              <div class="setup-eyebrow">GAME SETUP</div>
+              <h2 id="config-card-title" class="h5 mb-0">
+                Courts &amp; Rounds
+              </h2>
             </div>
           </div>
 
@@ -768,14 +790,13 @@
       </div>
     </section>
 
-    <SavedRostersModal
-      v-if="savedLibraryOpen"
-      :is-open="savedLibraryOpen"
-      :initial-tab="savedLibraryTab"
+    <PlayerRosterSelector
+      v-if="selectorOpen"
+      :is-open="selectorOpen"
       :persistence="rosterPersistence"
       :names-text="namesText"
       :has-assignments="schedule.length > 0"
-      @close="savedLibraryOpen = false"
+      @close="selectorOpen = false"
       @apply="applySavedRoster"
     />
 
@@ -1102,7 +1123,6 @@ import {
   listOutline,
   peopleOutline,
   folderOpenOutline,
-  saveOutline,
   playOutline,
   refreshOutline,
   settingsOutline,
@@ -1126,14 +1146,14 @@ import { createWorker } from 'tesseract.js';
 import courtLayoutIcon from '../assets/court-layout.svg';
 import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../services/rateApp.js';
 import { inject } from 'vue';
-import SavedRostersModal from './SavedRostersModal.vue';
+import PlayerRosterSelector from './PlayerRosterSelector.vue';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
 
 export default {
   name: 'Home',
 
   components: {
-    SavedRostersModal,
+    PlayerRosterSelector,
     IonButton,
     IonCard,
     IonCardContent,
@@ -1168,7 +1188,6 @@ export default {
       listOutline,
       peopleOutline,
       folderOpenOutline,
-      saveOutline,
       playOutline,
       refreshOutline,
       settingsOutline,
@@ -1190,8 +1209,7 @@ export default {
       roundCount: data.workingRoster.roundCount,
       rosterStorageStatus: status,
       rosterStorageWarningShown: false,
-      savedLibraryOpen: false,
-      savedLibraryTab: 'players',
+      selectorOpen: false,
       schedule: [],
 
       // UI-only state.
@@ -1369,9 +1387,8 @@ export default {
   },
 
   methods: {
-    openSavedLibrary(tab) {
-      this.savedLibraryTab = tab;
-      this.savedLibraryOpen = true;
+    openPlayerSelector() {
+      this.selectorOpen = true;
     },
     applySavedRoster(selection) {
       try {
@@ -1381,7 +1398,7 @@ export default {
           namesText: this.namesText,
           hasAssignments: this.schedule.length > 0
         });
-        this.savedLibraryOpen = false;
+        this.selectorOpen = false;
       } catch (error) {
         this.showMessage(error.message, 'alert alert-warning');
       }
@@ -2666,6 +2683,15 @@ export default {
 
 .setup-heading-text {
   min-width: 0;
+}
+
+.setup-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #0e4b2e;
+  margin-bottom: 0.2rem;
 }
 
 .setup-icon {
