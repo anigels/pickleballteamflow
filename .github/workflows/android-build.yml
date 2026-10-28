@@ -2,6 +2,11 @@ name: Build Android App
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Unused store build number; check all uploads before each run'
+        required: true
+        type: string
 
 jobs:
   build-android:
@@ -16,6 +21,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+
+      # Explicit numbering avoids collisions between fork/upstream workflow counters.
+      - name: Validate store build number
+        env:
+          REQUESTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: node scripts/validate-build-number.mjs android
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -32,7 +43,6 @@ jobs:
       - name: Set version and build number
         run: |
           APP_VERSION=$(node -p "require('./package.json').version")
-          BUILD_NUMBER="${{ github.run_number }}"
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
           echo "Setting version: $APP_VERSION, build: $BUILD_NUMBER"
