@@ -18,17 +18,24 @@ public class AppReviewPlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     @objc func requestReview(_ call: CAPPluginCall) {
-        DispatchQueue.main.async { [weak self] in
-            guard let controller = self?.bridge?.viewController,
-                  let scene = controller.view.window?.windowScene,
-                  scene.activationState == .foregroundActive,
-                  controller.presentedViewController == nil else {
-                call.resolve()
-                return
-            }
-            // StoreKit decides whether to display anything. Never infer a rating.
-            AppStore.requestReview(in: scene)
+        // Capacitor invokes plugins on its bridge queue. Use Objective-C's main
+        // thread dispatch for its non-Sendable call object rather than capturing
+        // the plugin and call in a Swift @Sendable closure.
+        perform(#selector(requestReviewOnMainThread(_:)), on: Thread.main,
+                with: call, waitUntilDone: false)
+    }
+
+    @MainActor
+    @objc private func requestReviewOnMainThread(_ call: CAPPluginCall) {
+        guard let controller = bridge?.viewController,
+              let scene = controller.view.window?.windowScene,
+              scene.activationState == .foregroundActive,
+              controller.presentedViewController == nil else {
             call.resolve()
+            return
         }
+        // StoreKit decides whether to display anything. Never infer a rating.
+        AppStore.requestReview(in: scene)
+        call.resolve()
     }
 }
