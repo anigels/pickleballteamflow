@@ -2,6 +2,11 @@ name: Build iOS App
 
 on:
   workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'Unused store build number; check all uploads before each run'
+        required: true
+        type: string
 
 jobs:
   build-ios:
@@ -16,6 +21,12 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+
+      # Explicit numbering avoids collisions between fork/upstream workflow counters.
+      - name: Validate store build number
+        env:
+          REQUESTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: node scripts/validate-build-number.mjs ios
 
       - name: Install dependencies
         run: npm ci
@@ -88,10 +99,8 @@ jobs:
           echo "iOS marketing version:"
           xcrun agvtool what-marketing-version
           
-      - name: Auto-increment Build Number
+      - name: Set verified build number
         run: |
-          # Use GitHub run number as build number to ensure uniqueness
-          BUILD_NUMBER="${{ github.run_number }}"
           echo "Setting build number to: $BUILD_NUMBER"
           
           # Update build number in project

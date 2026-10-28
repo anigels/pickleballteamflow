@@ -350,12 +350,6 @@ export default {
    MODAL / EMBEDDED SHELL
 ========================================================= */
 
-.selector-component.app-modal {
-  --width: min(48rem, 100%);
-  --height: 90%;
-  --border-radius: 1.25rem;
-}
-
 .selector-embedded {
   max-width: 48rem;
   margin: auto;
@@ -663,13 +657,6 @@ ion-label {
   white-space: normal;
   font-size: 1rem;
   line-height: 1.4;
-}
-
-@media (max-width: 35rem) {
-  .selector-component.app-modal {
-    --height: 100%;
-    --border-radius: 0;
-  }
 }
 </style>
 
