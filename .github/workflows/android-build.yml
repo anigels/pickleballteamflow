@@ -2,11 +2,6 @@ name: Build Android App
 
 on:
   workflow_dispatch:
-    inputs:
-      build_number:
-        description: 'Unused store build number; check all uploads before each run'
-        required: true
-        type: string
 
 jobs:
   build-android:
@@ -22,10 +17,10 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      # Explicit numbering avoids collisions between fork/upstream workflow counters.
-      - name: Validate store build number
+      # Continue the existing workflow counter; no manual dispatch input is needed.
+      - name: Set automatic store build number
         env:
-          REQUESTED_BUILD_NUMBER: ${{ inputs.build_number }}
+          WORKFLOW_RUN_NUMBER: ${{ github.run_number }}
         run: node scripts/validate-build-number.mjs android
 
       - name: Setup Java
