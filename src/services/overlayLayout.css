@@ -20,7 +20,7 @@ ion-alert:is(.ios, .md) .alert-message { max-height: none; overflow: visible; fo
 /* Ignore Ionic's measured vertical class: grid recomputes in both resize directions. */
 ion-alert:is(.ios, .md) .alert-button-group, ion-alert:is(.ios, .md) .alert-button-group.alert-button-group-vertical {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
   gap: .5rem;
   padding: .75rem;
   width: 100%;
