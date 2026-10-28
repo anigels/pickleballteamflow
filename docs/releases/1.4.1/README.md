@@ -24,8 +24,8 @@ These are real application screenshots in Chromium with synthetic safe-area valu
 - `android/app/build.gradle`: versionName 1.4.1; checked-in versionCode 1 unchanged.
 - `src/components/PlayerRosterSelector.vue`: remove conflicting modal sizing rules only.
 - `src/services/overlayLayout.css`: shared safe-area/visual-viewport bounds and avoid duplicate internal insets.
-- `.github/workflows/ios-build.yml`, `.github/workflows/android-build.yml`: explicit validated build-number dispatch input replaces repository-specific run numbers; signing, targets and upload conditions unchanged.
-- `scripts/validate-build-number.mjs`, `tests/build-number.test.mjs`: validate explicit release build numbers before signing/build steps.
+- `.github/workflows/ios-build.yml`, `.github/workflows/android-build.yml`: automatic validated GitHub workflow run numbers; no dispatch parameter required; signing, targets and upload conditions unchanged.
+- `scripts/validate-build-number.mjs`, `tests/build-number.test.mjs`: validate automatic release build numbers before signing/build steps.
 - `tests/release-version.test.mjs`: verify package, lockfile and both native marketing versions agree.
 - `scripts/check-overlay-layout.cjs`: browser geometry, resize, dismissal, navigation and preservation checks with screenshots.
 - This report and two evidence screenshots.
@@ -39,7 +39,7 @@ Store history checked 2026-10-28:
 - App Store production 1.4.0 / build 71; TestFlight and recent uploads top out at 71. No 1.4.1 binary exists yet.
 - Google Play highest uploaded code 21 (testing); production uses 20, version 1.4.0.
 
-Next candidates are **iOS 72** and **Android 22**. Before each workflow dispatch, check/reserve a fresh number across both repositories and all store uploads, including rejected or test builds. Enter it in `build_number`. Validation rejects numbers at/below the verified historical floors and malformed input. It is not a live store query and cannot prevent two maintainers choosing the same number concurrently. Coordinate releases and use a new number for each newly uploaded binary. Local Xcode/Android Studio builds also need their release build number set appropriately; do not upload the unchanged development defaults.
+Build numbers come automatically from `github.run_number`; Run workflow has no build-number field. Run release builds in `marco-rodriguez59/pickleballteamflow` to continue the original per-workflow counters (last verified uploads: iOS 71 and Android 21). The historical-floor check prevents a fresh fork counter from uploading a lower number. This is not a live store query. Use a new workflow dispatch after a successful upload rather than rerunning that same run, because reruns retain their run number. Local native builds still require suitable build numbers before uploading.
 
 The workflows remain manual. Their existing master-branch upload steps can upload to TestFlight or Play **beta**; no workflow was dispatched for this task. The existing beta track differs from the latest commit's wording about internal testing and was intentionally preserved.
 
@@ -98,4 +98,4 @@ Reviewed category (Sports / Utilities), age rating (4+), privacy disclosure (Dat
 
 Accessibility declarations have not been configured. Do not claim support until native assistive-technology testing is complete. No new blocking agreement was shown on the reviewed app pages; account-wide legal status was not altered. A newer marketing-assets notice is informational, not evidence of a mandatory screenshot replacement. The existing header asset remains; approved screenshots were not deleted/replaced, and the full screenshot gallery still needs final review after attaching the build. Verify reviewer contact fields and export-compliance answers when attaching the binary. Existing automatic-release-after-approval setting was not changed; review that setting before any future submission.
 
-No app submission, release, pricing/availability change, legal acceptance, merge, native build or upload was performed. Remaining release steps: review/merge PR with approval, recheck/reserve build numbers, run native builds, test the reported device, attach the binary, review screenshots/contact/compliance and release mode, then obtain explicit submission/release approval.
+No app submission, release, pricing/availability change, legal acceptance, merge, native build or upload was performed. Remaining release steps: review/merge PR with approval, run native builds from the original repository, test the reported device, attach the binary, review screenshots/contact/compliance and release mode, then obtain explicit submission/release approval.
