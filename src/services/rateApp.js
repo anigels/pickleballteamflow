@@ -1,4 +1,15 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { presentCompletionReview } from './reviewPrompt.mjs';
+
+const AppReview = registerPlugin('AppReview');
+
+export function requestCompletionReview(showLegacyPrompt) {
+  return presentCompletionReview({
+    platform: Capacitor.getPlatform(),
+    requestNative: () => AppReview.requestReview(),
+    showLegacyPrompt
+  });
+}
 
 const IOS_APP_ID    = '6804800516';
 const ANDROID_APP_ID = 'com.pickleballteamflow.app';

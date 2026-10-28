@@ -1151,7 +1151,7 @@ import {
 
 import { createWorker } from 'tesseract.js';
 import courtLayoutIcon from '../assets/court-layout.svg';
-import { openRateApp, recordGameCompleted, markRated, markDeclined } from '../services/rateApp.js';
+import { openRateApp, recordGameCompleted, markRated, markDeclined, requestCompletionReview } from '../services/rateApp.js';
 import { inject } from 'vue';
 import PlayerRosterSelector from './PlayerRosterSelector.vue';
 import { prepareRosterSelection } from '../services/rosterSelection.mjs';
@@ -1422,7 +1422,7 @@ export default {
           name: 'rosterName',
           type: 'text',
           placeholder: 'e.g. Tuesday Morning',
-          attributes: { autocomplete: 'off' }
+          attributes: { autocomplete: 'off', 'aria-label': 'Roster name' }
         }],
         buttons: [
           { text: 'Cancel', role: 'cancel' },
@@ -1431,7 +1431,17 @@ export default {
             cssClass: 'roster-confirm-action',
             handler: (inputData) => {
               const name = (inputData.rosterName ?? '').trim();
-              if (!name) return false;
+              if (!name) {
+                const message = alert.querySelector('.alert-message');
+                message?.setAttribute('role', 'alert');
+                message?.setAttribute('aria-live', 'assertive');
+                alert.message = 'Enter a roster name to continue.';
+                const input = alert.querySelector('input');
+                input?.setAttribute('aria-invalid', 'true');
+                if (message?.id) input?.setAttribute('aria-describedby', message.id);
+                input?.focus();
+                return false;
+              }
               this.executeSaveRoster(name);
             }
           }
@@ -2266,7 +2276,7 @@ export default {
       // Prompt to rate after a full game (all rounds done).
       if (this.schedule.every(r => r.closed)) {
         if (recordGameCompleted()) {
-          this.$nextTick(() => { this.rateModal.show = true; });
+          this.$nextTick(() => { void requestCompletionReview(() => { this.rateModal.show = true; }); });
         }
       }
     },

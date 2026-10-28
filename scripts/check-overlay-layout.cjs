@@ -79,6 +79,14 @@ const cases = baseline ? [['iphone17-pro',402,874,62,34,0,16,'ios']] : [
     await page.goto(`${baseUrl}/app.html#/`);
     await page.getByRole('button',{name:'Save Players & Roster',exact:true}).click();
     const save=page.locator('ion-alert.saved-roster-overlay'); await save.waitFor({state:'visible'});
+    await save.getByRole('button',{name:'Save Roster',exact:true}).click();
+    await save.getByText('Enter a roster name to continue.',{exact:true}).waitFor();
+    const nameInput=save.getByRole('textbox',{name:'Roster name',exact:true});
+    assert.equal(await nameInput.getAttribute('aria-invalid'),'true');
+    assert.equal(await save.locator('.alert-message').getAttribute('role'),'alert');
+    await nameInput.fill('   ');
+    await save.getByRole('button',{name:'Save Roster',exact:true}).click();
+    assert.equal(await page.evaluate(()=>localStorage.getItem('ptf.savedRosters')),before,'blank names never write storage');
     await page.screenshot({path:path.join(output,name+'-save.png')});
     await save.getByRole('button',{name:'Cancel',exact:true}).click(); await save.waitFor({state:'detached'});
     await page.getByRole('button',{name:'Generate Court Assignments',exact:true}).click();
@@ -94,6 +102,17 @@ const cases = baseline ? [['iphone17-pro',402,874,62,34,0,16,'ios']] : [
     assert.equal(await page.getByLabel('Round 1, completed' ,{exact:true}).count(),1,'completed round retained after closing swap');
     assert.equal(await page.getByRole('button',{name:'Complete round 2',exact:true}).count(),1,'open round retained');
     assert.equal(await page.evaluate(()=>localStorage.getItem('ptf.savedRosters')),before,'gameplay does not mutate saved library');
+    // Valid submission still saves and does not alter the active/completed rounds.
+    await page.getByRole('button',{name:'Save Players & Roster',exact:true}).click();
+    const validSave=page.locator('ion-alert.saved-roster-overlay'); await validSave.waitFor({state:'visible'});
+    await validSave.getByRole('textbox',{name:'Roster name',exact:true}).fill('  Validation test roster  ');
+    await validSave.getByRole('button',{name:'Save Roster',exact:true}).click(); await validSave.waitFor({state:'detached'});
+    const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('ptf.savedRosters')));
+    assert(saved.rosters.some(r=>r.name==='Validation test roster'));
+    assert.deepEqual(saved.workingRoster,JSON.parse(before).workingRoster);
+    assert.equal(await page.getByLabel('Round 1, completed',{exact:true}).count(),1);
+    assert.equal(await page.getByRole('button',{name:'Complete round 2',exact:true}).count(),1);
+
   }
   results.push({name,width,height,insets:{top,bottom,side},rootFont:font,mode,geometry,scroll:scrolled,status:'pass'});await context.unrouteAll({behavior:"wait"});await context.close();
  }} finally {await browser.close();fs.writeFileSync(path.join(output,'results.json'),JSON.stringify(results,null,2));}
